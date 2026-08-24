@@ -493,8 +493,8 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
     </div>
   </div>
   <div class="modal-footer d-flex flex-wrap gap-2 justify-content-between">
-    <button class="btn btn-success btn-sm" onclick="downloadIndexWithConfig()" title="ดาวน์โหลดไฟล์ index.html ที่มี Firebase config ฝังอยู่แล้ว นำไปอัพ GitHub ได้เลย">
-      <i class="bi bi-download me-1"></i>ดาวน์โหลดไฟล์พร้อม Config (สำหรับ GitHub)
+    <button class="btn btn-info btn-sm" id="fb-share-btn" onclick="generateShareLink()" style="display:none;">
+      <i class="bi bi-link-45deg me-1"></i>สร้าง Share Link
     </button>
     <div class="d-flex gap-2">
       <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
@@ -761,7 +761,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 // ====== FIREBASE LAYER ======
 // *** Admin: fill in your Firebase config here once, then upload index.html to GitHub ***
 // *** All devices will connect automatically — no per-device setup needed ***
-const HARDCODED_FB_CONFIG={apiKey:'AIzaSyAQXxWl-2Y-rFG5jNlUwRVekcBfMaGS1KU',projectId:'factory-equipment-system',authDomain:'factory-equipment-system.firebaseapp.com',appId:'1:309607845421:web:9dc3521fcb97c0491472a4'};
+const HARDCODED_FB_CONFIG={apiKey:'',projectId:'',authDomain:'',appId:''};
 
 const FB_COLS=['tools','materials','transactions','techs','teams','users','claims'];
 let fbDb=null,fbReady=false,fbUnsubscribes=[];
@@ -770,7 +770,25 @@ function fbSyncStatus(s){
   const M={offline:['secondary','bi-cloud-slash','Offline'],connecting:['warning','bi-cloud-arrow-up','กำลังเชื่อมต่อ...'],online:['success','bi-cloud-check-fill','ซิงค์แล้ว'],error:['danger','bi-cloud-x','ซิงค์ผิดพลาด']};
   const[c,ic,t]=M[s]||M.offline;el.innerHTML=`<i class="bi ${ic} me-1"></i>${t}`;el.className='badge bg-'+c;
 }
+function loadConfigFromURL(){
+  const params=new URLSearchParams(location.search);
+  const fbConfig=params.get('fbConfig');
+  if(fbConfig){
+    try{
+      const cfg=JSON.parse(atob(fbConfig));
+      if(cfg.apiKey&&cfg.projectId){
+        localStorage.setItem('fb_config',JSON.stringify(cfg));
+        window.history.replaceState({},'',location.pathname);
+        console.log('✓ Firebase Config loaded from URL');
+        return true;
+      }
+    }catch(e){console.error('Invalid fbConfig URL param',e);}
+  }
+  return false;
+}
 function fbInit(){
+  // Load config from URL if present
+  loadConfigFromURL();
   // Use hardcoded config first (baked into file for GitHub), fallback to localStorage
   const hc=HARDCODED_FB_CONFIG;
   const lc=JSON.parse(localStorage.getItem('fb_config')||'null');
@@ -840,15 +858,31 @@ function openFbConfig(){
   document.getElementById('fb-projectId').value=cfg.projectId||'';
   document.getElementById('fb-authDomain').value=cfg.authDomain||'';
   document.getElementById('fb-appId').value=cfg.appId||'';
+  const shareBtn=document.getElementById('fb-share-btn');
+  if(shareBtn)shareBtn.style.display=(cu()?.role==='admin'&&cfg.apiKey)?'':'none';
   new bootstrap.Modal(document.getElementById('fbConfigModal')).show();
 }
 function saveFbConfig(){
   const cfg={apiKey:document.getElementById('fb-apiKey').value.trim(),projectId:document.getElementById('fb-projectId').value.trim(),authDomain:document.getElementById('fb-authDomain').value.trim(),appId:document.getElementById('fb-appId').value.trim()};
   if(!cfg.apiKey||!cfg.projectId){alert('กรุณากรอก API Key และ Project ID');return;}
   localStorage.setItem('fb_config',JSON.stringify(cfg));
+  setTimeout(()=>{const shareBtn=document.getElementById('fb-share-btn');if(shareBtn)shareBtn.style.display='';},300);
   bootstrap.Modal.getInstance(document.getElementById('fbConfigModal')).hide();
   firebase.apps.forEach(a=>a.delete());fbDb=null;fbReady=false;
   setTimeout(fbInit,500);
+}
+function generateShareLink(){
+  const cfg=JSON.parse(localStorage.getItem('fb_config')||'{}');
+  if(!cfg.apiKey||!cfg.projectId){alert('ยังไม่มี Firebase Config');return;}
+  const encoded=btoa(JSON.stringify(cfg));
+  const baseUrl=location.origin+location.pathname;
+  const shareUrl=baseUrl+'?fbConfig='+encoded;
+  const html=`<div class="modal fade" id="shareLinkModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-info text-white"><h5 class="modal-title"><i class="bi bi-link-45deg me-2"></i>Share Link สำหรับ Firebase Config</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><p style="font-size:.85rem;color:#666;margin-bottom:12px;">แชร์ link นี้ให้ device อื่น คนที่เปิด link จะได้ Firebase Config อัตโนมัติ:</p><div class="input-group input-group-sm"><input type="text" class="form-control" id="share-url-input" value="${shareUrl}" readonly style="font-size:.8rem;"><button class="btn btn-outline-primary" onclick="navigator.clipboard.writeText(document.getElementById('share-url-input').value).then(()=>alert('คัดลอก link สำเร็จ')).catch(()=>alert('ไม่สามารถคัดลอกได้'))"><i class="bi bi-files me-1"></i>คัดลอก</button></div><p style="font-size:.75rem;color:#999;margin-top:12px;"><i class="bi bi-info-circle me-1"></i>Link นี้มี config ที่ encode ไว้ ปลอดภัยในการแชร์</p></div><div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button></div></div></div></div>`;
+  const div=document.createElement('div');
+  div.innerHTML=html;
+  document.body.appendChild(div);
+  new bootstrap.Modal(document.getElementById('shareLinkModal')).show();
+  div.addEventListener('hidden.bs.modal',()=>div.remove());
 }
 async function fbManualSync(){
   if(!fbReady){alert('ยังไม่ได้เชื่อมต่อ Firebase');return;}
