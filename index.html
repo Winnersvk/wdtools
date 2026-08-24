@@ -56,6 +56,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 .fsec{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:16px;margin-bottom:12px;}
 .fsec-title{font-weight:700;font-size:.88rem;color:#1e293b;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
 .item-card{background:#fff;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:all .15s;overflow:hidden;}
+#clm-tbody tr:hover{background:#f8fafc;}
 .item-card:hover{border-color:var(--primary);}
 .item-card.sel{border-color:var(--primary);background:#eff6ff;}
 .item-card.off{opacity:.5;cursor:not-allowed;border-color:#e2e8f0!important;background:#f8fafc;}
@@ -455,6 +456,12 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
     <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
     <button class="btn btn-danger btn-sm" onclick="doClaimTool()"><i class="bi bi-exclamation-triangle me-1"></i>ยืนยันการเคลม</button>
   </div>
+</div></div></div>
+<!-- Claim Detail Modal -->
+<div class="modal fade" id="claimDetailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header bg-dark text-white"><h5 class="modal-title"><i class="bi bi-file-earmark-text me-2"></i>รายละเอียดการเคลมเครื่องมือ</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body" id="claimDetailBody"></div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button></div>
 </div></div></div>
 <!-- Material -->
 <div class="modal fade" id="matModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
@@ -1137,9 +1144,8 @@ function submitWO(){
 // ====== ORDERS LIST ======
 function initOrdFilters(){
   const teams=DB.get('teams');
-  const today=new Date().toISOString().slice(0,10);
-  document.getElementById('ord-from').value=today.slice(0,7)+'-01';
-  document.getElementById('ord-to').value=today;
+  document.getElementById('ord-from').value='';
+  document.getElementById('ord-to').value='';
   document.getElementById('ord-team').innerHTML='<option value="">ทุกทีม</option>'+teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
 }
 
@@ -1525,9 +1531,8 @@ function doRetMat(){
 // ====== HISTORY PAGE ======
 function initHistFilters(){
   const techs=DB.get('techs');
-  const today=new Date().toISOString().slice(0,10);
-  document.getElementById('hist-from').value=today.slice(0,7)+'-01';
-  document.getElementById('hist-to').value=today;
+  document.getElementById('hist-from').value='';
+  document.getElementById('hist-to').value='';
   document.getElementById('hist-tech').innerHTML='<option value="">ทุกช่าง</option>'+techs.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
 }
 function loadHistory(){
@@ -1793,6 +1798,7 @@ function doClaimTool(){
   // Save claim record
   const claims=DB.get('claims')||[];
   claims.push({id:Date.now(),date:new Date().toISOString().slice(0,10),txId,txCode:tx.code,jobName:tx.jobName,
+    jobLocation:tx.jobLocation||tx.location||'',
     toolId:it.toolId,toolName:it.toolName,qrCode:it.qrCode,
     claimType:clmType,note,teamName:tx.teamName||'',memberNames:tx.memberNames||[],
     processedBy:cu()?.username||''});
@@ -1815,15 +1821,77 @@ function loadClaimPage(){
   if(q)list=list.filter(c=>(c.toolName+c.txCode+c.jobName).toLowerCase().includes(q));
   const tbody=document.getElementById('clm-tbody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="7" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';return;}
-  tbody.innerHTML=list.map(c=>`<tr>
+  tbody.innerHTML=list.map(c=>`<tr style="cursor:pointer;" onclick="openClaimDetail(${c.id})" title="คลิกเพื่อดูรายละเอียด">
     <td style="white-space:nowrap;">${c.date}</td>
     <td><small class="fw-bold text-primary">${c.txCode}</small><br><small class="text-muted">${c.jobName||''}</small></td>
     <td><b>${c.toolName}</b><br><small class="text-muted">${c.qrCode||''}</small></td>
     <td><span class="badge ${c.claimType==='lost'?'bg-secondary':'bg-danger'}">${TL[c.claimType]||c.claimType}</span></td>
     <td style="font-size:.78rem;">${c.teamName||''}<br>${(c.memberNames||[]).join(', ')}</td>
     <td style="font-size:.78rem;">${c.note||'-'}</td>
-    <td style="font-size:.78rem;">${c.processedBy||'-'}</td>
+    <td style="font-size:.78rem;">${c.processedBy||'-'} <i class="bi bi-chevron-right text-muted ms-1"></i></td>
   </tr>`).join('');
+}
+function openClaimDetail(claimId){
+  const claims=DB.get('claims')||[];
+  const c=claims.find(x=>x.id===claimId);
+  if(!c)return;
+  const TL={lost:'สูญหาย',broken:'พังซ่อมไม่ได้'};
+  // Try to get original transaction for extra fields
+  const txs=DB.get('transactions')||[];
+  const tx=txs.find(t=>t.id===c.txId)||{};
+  const jobLocation=tx.jobLocation||tx.location||c.jobLocation||'-';
+  const memberNames=(c.memberNames&&c.memberNames.length)?c.memberNames:(tx.memberNames||[]);
+  const teamName=c.teamName||tx.teamName||'-';
+  const claimBadge=c.claimType==='lost'?'bg-secondary':'bg-danger';
+  document.getElementById('claimDetailBody').innerHTML=`
+    <div class="row g-3">
+      <div class="col-12">
+        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #e2e8f0;">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-file-earmark-check text-primary fs-5"></i>
+            <span class="fw-bold">ข้อมูลใบงาน</span>
+          </div>
+          <div class="row g-2" style="font-size:.88rem;">
+            <div class="col-sm-4"><span class="text-muted">เลขใบงาน</span><br><b class="text-primary">${c.txCode||'-'}</b></div>
+            <div class="col-sm-4"><span class="text-muted">วันที่เคลม</span><br><b>${c.date}</b></div>
+            <div class="col-sm-4"><span class="text-muted">ผู้ดำเนินการ</span><br><b>${c.processedBy||'-'}</b></div>
+            <div class="col-sm-6"><span class="text-muted">ชื่องาน</span><br><b>${c.jobName||'-'}</b></div>
+            <div class="col-sm-6"><span class="text-muted">สถานที่ปฏิบัติงาน</span><br><b>${jobLocation}</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="p-3 rounded" style="background:#fef9f0;border:1px solid #fde68a;">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-people text-warning fs-5"></i>
+            <span class="fw-bold">ทีมงาน</span>
+          </div>
+          <div style="font-size:.88rem;">
+            <div class="mb-1"><span class="text-muted">ชื่อทีม: </span><b>${teamName}</b></div>
+            <div><span class="text-muted">สมาชิกในทีม: </span>
+              ${memberNames.length?memberNames.map(n=>`<span class="badge bg-light text-dark border me-1">${n}</span>`).join(''):'<span class="text-muted">-</span>'}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="p-3 rounded" style="background:#fff5f5;border:1px solid #fecaca;">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-tools text-danger fs-5"></i>
+            <span class="fw-bold">ข้อมูลเครื่องมือที่เคลม</span>
+          </div>
+          <div class="row g-2" style="font-size:.88rem;">
+            <div class="col-sm-6"><span class="text-muted">ชื่อเครื่องมือ</span><br><b>${c.toolName||'-'}</b></div>
+            <div class="col-sm-6"><span class="text-muted">QR Code</span><br><b>${c.qrCode||'-'}</b></div>
+            <div class="col-sm-6"><span class="text-muted">ประเภทการเคลม</span><br>
+              <span class="badge ${claimBadge}">${TL[c.claimType]||c.claimType}</span>
+            </div>
+            <div class="col-sm-6"><span class="text-muted">สาเหตุ / หมายเหตุ</span><br><b>${c.note||'-'}</b></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  new bootstrap.Modal(document.getElementById('claimDetailModal')).show();
 }
 // ====== QR SCAN PAGE ======
 function scanQR(){
