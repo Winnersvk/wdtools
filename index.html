@@ -92,6 +92,11 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 .dash-tx-row{cursor:pointer;}
 .dash-tx-row:hover{background:#eff6ff;}
 @media(max-width:768px){#sidebar{transform:translateX(-100%);}#sidebar.show{transform:translateX(0);}#main{margin-left:0;}}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;}
+#sidebar-overlay.show{display:block;}
+#sidebar-close-btn{display:none;position:absolute;top:12px;right:12px;background:transparent;border:none;color:#94a3b8;font-size:1.3rem;cursor:pointer;line-height:1;padding:4px;}
+@media(max-width:768px){#sidebar-close-btn{display:block;}}
+#sidebar{position:fixed;}
 @media print{#sidebar,#cart-panel,.topbar,.no-print,#login-overlay{display:none!important;}#main{margin-left:0!important;}body{background:#fff;}.page{display:block!important;}}
 </style>
 </head>
@@ -109,7 +114,9 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 </div>
 <!-- APP -->
 <div id="app" style="display:none;">
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
 <div id="sidebar">
+  <button id="sidebar-close-btn" onclick="closeSidebar()" title="ปิดเมนู"><i class="bi bi-x-lg"></i></button>
   <div class="logo-bar"><i class="bi bi-tools"></i><div><div style="font-size:.65rem;color:#94a3b8;">โรงงาน</div>วัสดุ & เครื่องมือ</div></div>
   <div style="flex:1;overflow-y:auto;padding:5px 0;">
     <div class="nav-sec">ภาพรวม</div>
@@ -138,7 +145,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 <div id="main">
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:10px;">
-      <button class="btn btn-sm d-md-none" onclick="document.getElementById('sidebar').classList.toggle('show')"><i class="bi bi-list fs-5"></i></button>
+      <button class="btn btn-sm d-md-none" onclick="openSidebar()"><i class="bi bi-list fs-5"></i></button>
       <h5 id="pg-title">แดชบอร์ด</h5>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
@@ -864,6 +871,15 @@ function startApp(){
   showPage('dashboard');
 }
 
+// ====== SIDEBAR MOBILE ======
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('show');
+  document.getElementById('sidebar-overlay').classList.add('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('show');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
 // ====== NAVIGATION ======
 const TITLES={dashboard:'แดชบอร์ด',workorder:'สร้างใบงานใหม่',orders:'รายการใบงาน',history:'ประวัติการเบิก-คืน',scan:'สแกน QR Code',materials:'จัดการวัสดุ',tools:'จัดการเครื่องมือ',technicians:'ช่าง / ทีม / ผู้ใช้',qrcodes:'QR Code เครื่องมือ',pending:'รายการคงค้างส่งคืน',claim:'การเคลมเครื่องมือ'};
 function showPage(name){
@@ -876,6 +892,7 @@ function showPage(name){
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+name+"'")));
   document.getElementById('pg-title').textContent=TITLES[name]||name;
+  closeSidebar(); // auto-close sidebar on mobile when navigating
   if(name==='dashboard')loadDash();
   if(name==='workorder')initWO();
   if(name==='orders'){initOrdFilters();loadOrders();}
