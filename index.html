@@ -226,12 +226,29 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
       <div style="font-size:.82rem;color:#64748b;">วัสดุ: <b id="wo-mat-sel">0</b> รายการ &nbsp;|&nbsp; เครื่องมือ: <b id="wo-tool-sel">0</b> รายการ</div>
       <div class="d-flex gap-2">
         <textarea class="form-control form-control-sm" id="wo-note" rows="1" placeholder="หมายเหตุ..." style="width:200px;resize:none;"></textarea>
+        <button class="btn btn-outline-secondary" onclick="saveDraft()"><i class="bi bi-floppy me-1"></i>บันทึกร่าง</button>
         <button class="btn btn-primary fw-bold" onclick="submitWO()"><i class="bi bi-check-circle me-1"></i>บันทึกใบงาน</button>
       </div>
+    </div>
+    <!-- Draft editing banner -->
+    <div id="draft-edit-banner" class="alert alert-warning d-flex align-items-center gap-2 mt-2 mb-0" style="display:none;font-size:.83rem;">
+      <i class="bi bi-pencil-square"></i>
+      <span>กำลังแก้ไขร่างใบงาน: <b id="draft-edit-code"></b></span>
+      <button class="btn btn-outline-warning btn-sm ms-auto py-0" onclick="editingDraftId=null;document.getElementById('draft-edit-banner').style.display='none';initWO();">ยกเลิกการแก้ไข</button>
     </div>
   </div>
   <!-- WORK ORDERS LIST -->
   <div id="page-orders" class="page">
+    <!-- Draft section -->
+    <div id="draft-section" style="display:none;" class="mb-3">
+      <div class="tcard">
+        <div class="tcard-title" style="background:#fffbeb;border-bottom:1px solid #fde68a;">
+          <span><i class="bi bi-floppy me-2" style="color:#d97706;"></i>ร่างใบงาน</span>
+          <small class="text-muted" style="font-size:.72rem;">กดแก้ไขหรือสร้างใบงานจากร่าง</small>
+        </div>
+        <div class="p-2" id="draft-list"></div>
+      </div>
+    </div>
     <div class="row g-2 mb-3">
       <div class="col-md-2"><input type="date" class="form-control form-control-sm" id="ord-from" onchange="loadOrders()"></div>
       <div class="col-md-2"><input type="date" class="form-control form-control-sm" id="ord-to" onchange="loadOrders()"></div>
@@ -995,6 +1012,9 @@ function printFromDetail(){
 let woMatCart=[], woToolCart=[], woSelMembers=[];
 function initWO(){
   woMatCart=[]; woToolCart=[]; woSelMembers=[];
+  editingDraftId=null;
+  const banner=document.getElementById('draft-edit-banner');
+  if(banner)banner.style.display='none';
   const now=new Date();
   document.getElementById('wo-dt-borrow').value=now.toISOString().slice(0,16);
   document.getElementById('wo-dt-return').value=new Date(now.getTime()+24*3600000).toISOString().slice(0,16);
@@ -1197,6 +1217,129 @@ function submitWO(){
   openPrintModal(tx);
 }
 
+// ====== DRAFT WORK ORDER ======
+let editingDraftId=null;
+function saveDraft(){
+  const jobName=document.getElementById('wo-jobname').value.trim();
+  if(!jobName&&!woMatCart.length&&!woToolCart.length){alert('กรุณากรอกข้อมูลอย่างน้อย 1 อย่าง (ชื่องาน/วัสดุ/เครื่องมือ) ก่อนบันทึกร่าง');return;}
+  const teamId=parseInt(document.getElementById('wo-team').value)||0;
+  const teams=DB.get('teams'),techs=DB.get('techs');
+  const team=teams.find(t=>t.id===teamId);
+  const memberNames=woSelMembers.map(id=>techs.find(t=>t.id===id)?.name||'').filter(Boolean);
+  const txs=DB.get('transactions');
+  const now=new Date();
+  if(editingDraftId){
+    // Update existing draft
+    const idx=txs.findIndex(t=>t.id===editingDraftId);
+    if(idx>=0){
+      txs[idx]={...txs[idx],
+        jobName,jobLocation:document.getElementById('wo-location').value.trim(),
+        borrowDatetime:document.getElementById('wo-dt-borrow').value,
+        returnDatetime:document.getElementById('wo-dt-return').value,
+        teamId,teamName:team?team.name:'',
+        memberIds:woSelMembers,memberNames,
+        approver:document.getElementById('wo-approver').value.trim(),
+        note:document.getElementById('wo-note').value,
+        matItems:woMatCart.map(c=>({materialId:c.id,name:c.name,qty:c.qty,unit:c.unit,returnedQty:0})),
+        toolItems:woToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,status:'draft',retDt:null,condition:null,note:''})),
+        updatedAt:now.toISOString()
+      };
+      DB.set('transactions',txs);
+      editingDraftId=null;
+      alert('บันทึกร่างใบงานแล้ว');
+      initWO(); showPage('orders');
+      return;
+    }
+  }
+  // New draft
+  const id=DB.nextId('transactions');
+  const tx={
+    id,code:'DRAFT-'+String(id).padStart(3,'0'),
+    date:now.toISOString().slice(0,10),
+    status:'draft',closed:false,isDraft:true,
+    createdBy:cu()?.username||'',createdAt:now.toISOString(),
+    jobName:jobName||'(ยังไม่ระบุชื่องาน)',
+    jobLocation:document.getElementById('wo-location').value.trim(),
+    borrowDatetime:document.getElementById('wo-dt-borrow').value,
+    returnDatetime:document.getElementById('wo-dt-return').value,
+    teamId,teamName:team?team.name:'',
+    memberIds:woSelMembers,memberNames,
+    approver:document.getElementById('wo-approver').value.trim(),
+    note:document.getElementById('wo-note').value,
+    matItems:woMatCart.map(c=>({materialId:c.id,name:c.name,qty:c.qty,unit:c.unit,returnedQty:0})),
+    toolItems:woToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,status:'draft',retDt:null,condition:null,note:''}))
+  };
+  txs.push(tx);DB.set('transactions',txs);
+  alert('บันทึกร่างใบงานแล้ว สามารถกลับมาแก้ไขได้ที่หน้า "รายการใบงาน"');
+  initWO(); showPage('orders');
+}
+function editDraft(id){
+  const tx=DB.get('transactions').find(t=>t.id===id&&t.isDraft);
+  if(!tx)return;
+  editingDraftId=id;
+  // Navigate to WO form and populate
+  showPage('workorder');
+  setTimeout(()=>{
+    document.getElementById('wo-jobname').value=tx.jobName==='(ยังไม่ระบุชื่องาน)'?'':tx.jobName||'';
+    document.getElementById('wo-location').value=tx.jobLocation||'';
+    document.getElementById('wo-approver').value=tx.approver||'';
+    document.getElementById('wo-note').value=tx.note||'';
+    if(tx.borrowDatetime)document.getElementById('wo-dt-borrow').value=tx.borrowDatetime;
+    if(tx.returnDatetime)document.getElementById('wo-dt-return').value=tx.returnDatetime;
+    // Set team
+    if(tx.teamId){
+      document.getElementById('wo-team').value=tx.teamId;
+      woLoadMembers();
+      setTimeout(()=>{
+        woSelMembers=[...(tx.memberIds||[])];
+        woSelMembers.forEach(mid=>{const el=document.getElementById('chip-'+mid);if(el)el.classList.add('on');});
+      },100);
+    }
+    // Restore cart
+    woMatCart=(tx.matItems||[]).map(it=>({id:it.materialId,name:it.name,qty:it.qty,unit:it.unit}));
+    woToolCart=(tx.toolItems||[]).map(it=>({id:it.toolId,name:it.toolName,qrCode:it.qrCode}));
+    woFilterMat(); woFilterTool(); updateWOCounts();
+    // Show draft-editing banner
+    const banner=document.getElementById('draft-edit-banner');
+    if(banner){banner.style.display='';banner.querySelector('#draft-edit-code').textContent=tx.code;}
+  },50);
+}
+function deleteDraft(id){
+  if(!confirm('ลบร่างใบงานนี้?'))return;
+  let txs=DB.get('transactions');
+  txs=txs.filter(t=>t.id!==id);
+  DB.set('transactions',txs);
+  loadOrders();
+}
+function activateDraft(id){
+  // Submit the draft as a real WO - re-use editDraft then auto-submit
+  const tx=DB.get('transactions').find(t=>t.id===id&&t.isDraft);
+  if(!tx){alert('ไม่พบร่างใบงาน');return;}
+  if(!tx.jobName||tx.jobName==='(ยังไม่ระบุชื่องาน)'){alert('กรุณากรอกชื่องานก่อนสร้างใบงาน');editDraft(id);return;}
+  if(!tx.teamId){alert('กรุณาเลือกทีมก่อนสร้างใบงาน');editDraft(id);return;}
+  if(!tx.approver){alert('กรุณาระบุผู้อนุมัติก่อนสร้างใบงาน');editDraft(id);return;}
+  if(!tx.memberIds||!tx.memberIds.length){alert('กรุณาเลือกช่างอย่างน้อย 1 คนก่อนสร้างใบงาน');editDraft(id);return;}
+  if(!tx.matItems?.length&&!tx.toolItems?.length){alert('กรุณาเลือกวัสดุหรือเครื่องมืออย่างน้อย 1 รายการ');editDraft(id);return;}
+  // Mark tools as borrowed
+  if(tx.toolItems&&tx.toolItems.length){
+    const tools=DB.get('tools');
+    tx.toolItems.forEach(it=>{const t=tools.find(x=>x.id===it.toolId);if(t)t.status='borrowed';it.status='borrowed';});
+    DB.set('tools',tools);
+  }
+  // Convert draft to active WO
+  const txs=DB.get('transactions');
+  const idx=txs.findIndex(t=>t.id===id);
+  if(idx<0)return;
+  const now=new Date();
+  txs[idx]={...txs[idx],
+    isDraft:false,status:'active',
+    code:'WO-'+now.getFullYear()+'-'+String(id).padStart(3,'0'),
+    activatedAt:now.toISOString()
+  };
+  DB.set('transactions',txs);
+  openPrintModal(txs[idx]);
+  loadOrders();
+}
 // ====== ORDERS LIST ======
 function initOrdFilters(){
   const teams=DB.get('teams');
@@ -1211,7 +1354,34 @@ function loadOrders(){
   const teamId=parseInt(document.getElementById('ord-team').value)||0;
   const statusFilt=document.getElementById('ord-status').value;
   const u=cu();
-  let txs=DB.get('transactions').filter(t=>{
+  const allTxs=DB.get('transactions');
+  // Show drafts at top (admin/planning only)
+  const draftContainer=document.getElementById('draft-section');
+  if(draftContainer&&can('admin','planning')){
+    const drafts=allTxs.filter(t=>t.isDraft).sort((a,b)=>b.id-a.id);
+    if(drafts.length){
+      draftContainer.style.display='';
+      draftContainer.querySelector('#draft-list').innerHTML=drafts.map(d=>`
+        <div class="d-flex align-items-center gap-2 p-2 mb-1 rounded" style="background:#fffbeb;border:1px solid #fde68a;">
+          <div style="flex:1;min-width:0;">
+            <span class="badge bg-warning text-dark me-2" style="font-size:.68rem;">ร่าง</span>
+            <b style="font-size:.85rem;">${d.jobName}</b>
+            <span class="text-muted ms-2" style="font-size:.75rem;">${d.teamName||'ยังไม่เลือกทีม'}</span>
+            <br><small class="text-muted">${d.code} · ${d.date} · วัสดุ ${(d.matItems||[]).length} · เครื่องมือ ${(d.toolItems||[]).length}</small>
+          </div>
+          <div class="d-flex gap-1 flex-shrink-0">
+            <button class="btn btn-warning btn-sm py-0 px-2" onclick="editDraft(${d.id})" title="แก้ไขร่าง"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-success btn-sm py-0 px-2" onclick="activateDraft(${d.id})" title="สร้างใบงานจากร่างนี้"><i class="bi bi-check-lg"></i> สร้าง</button>
+            <button class="btn btn-outline-danger btn-sm py-0 px-2" onclick="deleteDraft(${d.id})" title="ลบร่าง"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>`).join('');
+    } else {
+      draftContainer.style.display='none';
+    }
+  } else if(draftContainer) draftContainer.style.display='none';
+
+  let txs=allTxs.filter(t=>{
+    if(t.isDraft)return false; // exclude drafts from main list
     if(from&&t.date<from)return false;
     if(to&&t.date>to)return false;
     if(teamId&&t.teamId!==teamId)return false;
