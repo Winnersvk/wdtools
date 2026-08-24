@@ -436,6 +436,20 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
           <button class="btn btn-outline-success btn-sm me-2" onclick="downloadImportTemplate()"><i class="bi bi-download me-1"></i>ดาวน์โหลด Template (.xlsx)</button>
         </div>
       </div>
+      <!-- Tool type selector (show only for tool import) -->
+      <div class="mb-3" id="imp-tool-type-box" style="display:none;">
+        <label class="form-label fw-bold">ประเภทเครื่องมือ (สำหรับเครื่องมือทั้งหมดในไฟล์นี้)</label>
+        <div class="d-flex gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="imp-tool-type" id="imp-tool-unique" value="unique" checked>
+            <label class="form-check-label" for="imp-tool-unique" style="font-size:.85rem;"><i class="bi bi-qr-code me-1 text-primary"></i>เฉพาะชิ้น (มี QR Code)</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="imp-tool-type" id="imp-tool-stock" value="stock">
+            <label class="form-check-label" for="imp-tool-stock" style="font-size:.85rem;"><i class="bi bi-stack me-1 text-success"></i>คลังสต็อก (หลายชิ้น)</label>
+          </div>
+        </div>
+      </div>
       <div class="mb-3">
         <label class="form-label fw-bold">เลือกไฟล์ Excel (.xlsx, .xls, .csv)</label>
         <input type="file" class="form-control form-control-sm" id="imp-file" accept=".xlsx,.xls,.csv" onchange="handleImportFile(event)">
@@ -2011,7 +2025,7 @@ function loadPending(){
 // ====== IMPORT EXCEL ======
 const IMP_CFG={
   mat:{title:'วัสดุ',cols:['ชื่อวัสดุ*','หมวดหมู่','หน่วย','ที่เก็บ','ผู้จัดจำหน่าย','รายละเอียด'],keys:['name','cat','unit','location','supplier','desc']},
-  tool:{title:'เครื่องมือ',cols:['ชื่อเครื่องมือ*','หมวดหมู่','QR Code','ที่เก็บ','ผู้จัดจำหน่าย','ราคา','วันที่ซื้อ','อายุการใช้งาน(ปี)'],keys:['name','cat','qrCode','location','supplier','price','buyDate','lifespan']},
+  tool:{title:'เครื่องมือ',cols:['ชื่อเครื่องมือ*','หมวดหมู่','QR Code/รหัส','ที่เก็บ','ผู้จัดจำหน่าย','ราคา','วันที่ซื้อ','อายุการใช้งาน(ปี)','จำนวนทั้งหมด','คงเหลือ'],keys:['name','cat','qrCode','location','supplier','price','buyDate','lifespan','totalQty','availableQty']},
   tech:{title:'ช่าง',cols:['รหัสพนักงาน','ชื่อ-นามสกุล*','ตำแหน่ง','เบอร์โทร'],keys:['empId','name','pos','phone']},
   user:{title:'ผู้ใช้งาน',cols:['Username*','Password*','ชื่อ*','บทบาท(admin/planning/tech)*'],keys:['username','password','name','role']}
 };
@@ -2024,6 +2038,14 @@ function openImportModal(type){
   document.getElementById('imp-preview-area').style.display='none';
   document.getElementById('imp-confirm-btn').disabled=true;
   document.getElementById('imp-confirm-count').textContent='0';
+  // Show tool type selector only for tool import
+  const toolTypeBox=document.getElementById('imp-tool-type-box');
+  if(toolTypeBox){
+    toolTypeBox.style.display=type==='tool'?'':'none';
+    if(type==='tool'){
+      document.getElementById('imp-tool-unique').checked=true;
+    }
+  }
   new bootstrap.Modal(document.getElementById('importModal')).show();
 }
 function downloadImportTemplate(){
@@ -2075,9 +2097,17 @@ function doImport(){
     DB.set('materials',mats);renderMatTbl();
   } else if(impType==='tool'){
     const tools=DB.get('tools');
+    const toolType=document.querySelector('input[name="imp-tool-type"]:checked')?.value||'unique';
     impRows.forEach(r=>{
       if(!r.name)return;
-      tools.push({id:DB.nextId('tools'),name:r.name,cat:r.cat||'',qrCode:r.qrCode||('T-'+Date.now()),status:'available',location:r.location||'',supplier:r.supplier||'',price:r.price||'',buyDate:r.buyDate||'',lifespan:r.lifespan||'',isFocus:false,desc:'',img:'',repairs:[]});
+      if(toolType==='stock'){
+        const tq=parseInt(r.totalQty)||1;
+        const aq=parseInt(r.availableQty)??tq;
+        tools.push({id:DB.nextId('tools'),name:r.name,cat:r.cat||'',toolType:'stock',totalQty:tq,availableQty:Math.min(aq,tq),location:r.location||'',supplier:r.supplier||'',price:parseFloat(r.price)||0,buyDate:r.buyDate||'',isFocus:false,desc:'',img:'',repairs:[]});
+      } else {
+        let qrCode=r.qrCode||('T-'+Date.now());
+        tools.push({id:DB.nextId('tools'),name:r.name,cat:r.cat||'',qrCode,toolType:'unique',status:'available',location:r.location||'',supplier:r.supplier||'',price:parseFloat(r.price)||0,buyDate:r.buyDate||'',lifespan:parseInt(r.lifespan)||0,isFocus:false,desc:'',img:'',repairs:[]});
+      }
     });
     DB.set('tools',tools);renderToolTbl();
   } else if(impType==='tech'){
