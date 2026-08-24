@@ -434,7 +434,15 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
       <button class="btn btn-outline-danger btn-sm" onclick="if(confirm('ลบการเชื่อมต่อ Firebase?')){localStorage.removeItem('fb_config');fbReady=false;fbSyncStatus('offline');bootstrap.Modal.getInstance(document.getElementById('fbConfigModal')).hide();}"><i class="bi bi-trash me-1"></i>ยกเลิกการเชื่อมต่อ</button>
     </div>
   </div>
-  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-primary btn-sm" onclick="saveFbConfig()"><i class="bi bi-cloud-check me-1"></i>บันทึกและเชื่อมต่อ</button></div>
+  <div class="modal-footer d-flex flex-wrap gap-2 justify-content-between">
+    <button class="btn btn-success btn-sm" onclick="downloadIndexWithConfig()" title="ดาวน์โหลดไฟล์ index.html ที่มี Firebase config ฝังอยู่แล้ว นำไปอัพ GitHub ได้เลย">
+      <i class="bi bi-download me-1"></i>ดาวน์โหลดไฟล์พร้อม Config (สำหรับ GitHub)
+    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+      <button class="btn btn-primary btn-sm" onclick="saveFbConfig()"><i class="bi bi-cloud-check me-1"></i>บันทึกและเชื่อมต่อ</button>
+    </div>
+  </div>
 </div></div></div>
 <!-- Claim Tool Modal -->
 <div class="modal fade" id="claimModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
@@ -675,6 +683,10 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 </div><!-- #app -->
 <script>
 // ====== FIREBASE LAYER ======
+// *** Admin: fill in your Firebase config here once, then upload index.html to GitHub ***
+// *** All devices will connect automatically — no per-device setup needed ***
+const HARDCODED_FB_CONFIG={apiKey:'',projectId:'',authDomain:'',appId:''};
+
 const FB_COLS=['tools','materials','transactions','techs','teams','users','claims'];
 let fbDb=null,fbReady=false,fbUnsubscribes=[];
 function fbSyncStatus(s){
@@ -683,13 +695,33 @@ function fbSyncStatus(s){
   const[c,ic,t]=M[s]||M.offline;el.innerHTML=`<i class="bi ${ic} me-1"></i>${t}`;el.className='badge bg-'+c;
 }
 function fbInit(){
-  const cfg=JSON.parse(localStorage.getItem('fb_config')||'null');
+  // Use hardcoded config first (baked into file for GitHub), fallback to localStorage
+  const hc=HARDCODED_FB_CONFIG;
+  const lc=JSON.parse(localStorage.getItem('fb_config')||'null');
+  const cfg=(hc&&hc.apiKey)?hc:lc;
   if(!cfg||!cfg.apiKey){fbSyncStatus('offline');return;}
+  // Pre-fill modal fields with active config
+  ['apiKey','projectId','authDomain','appId'].forEach(k=>{const el=document.getElementById('fb-'+k);if(el)el.value=cfg[k]||'';});
   try{
     if(!firebase.apps.length)firebase.initializeApp(cfg);
     fbDb=firebase.firestore();fbReady=true;fbSyncStatus('connecting');
     fbPullAll().then(()=>{fbSetupRealtime();fbSyncStatus('online');refreshCurrentView();}).catch(e=>{console.error('FB pull err',e);fbSyncStatus('error');});
   }catch(e){console.error('FB init err',e);fbSyncStatus('error');}
+}
+function downloadIndexWithConfig(){
+  const cfg={
+    apiKey:document.getElementById('fb-apiKey').value.trim(),
+    projectId:document.getElementById('fb-projectId').value.trim(),
+    authDomain:document.getElementById('fb-authDomain').value.trim(),
+    appId:document.getElementById('fb-appId').value.trim()
+  };
+  if(!cfg.apiKey||!cfg.projectId){alert('กรุณากรอก API Key และ Project ID ก่อน');return;}
+  const src=document.documentElement.outerHTML;
+  const newLine=`const HARDCODED_FB_CONFIG={apiKey:'${cfg.apiKey}',projectId:'${cfg.projectId}',authDomain:'${cfg.authDomain}',appId:'${cfg.appId}'};`;
+  const updated=src.replace(/const HARDCODED_FB_CONFIG=\{[^}]*\};/,newLine);
+  const blob=new Blob([updated],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='index.html';a.click();
+  alert('ดาวน์โหลดแล้ว!\nนำไฟล์ index.html นี้อัพโหลดขึ้น GitHub แทนไฟล์เดิม\nทุกเครื่องจะเชื่อมต่อ Firebase อัตโนมัติ');
 }
 async function fbPullAll(){
   if(!fbReady)return;
