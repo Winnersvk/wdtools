@@ -729,7 +729,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 // ====== FIREBASE LAYER ======
 // *** Admin: fill in your Firebase config here once, then upload index.html to GitHub ***
 // *** All devices will connect automatically — no per-device setup needed ***
-const HARDCODED_FB_CONFIG={apiKey:'AIzaSyAQXxWl-2Y-rFG5jNlUwRVekcBfMaGS1KU',projectId:'factory-equipment-system',authDomain:'factory-equipment-system.firebaseapp.com',appId:'1:309607845421:web:9dc3521fcb97c0491472a4'};
+const HARDCODED_FB_CONFIG={apiKey:'',projectId:'',authDomain:'',appId:''};
 
 const FB_COLS=['tools','materials','transactions','techs','teams','users','claims'];
 let fbDb=null,fbReady=false,fbUnsubscribes=[];
@@ -1099,10 +1099,12 @@ function woFilterMat(){
     return `<div class="col-6 col-md-3 col-xl-2"><div class="item-card${c?' sel':''}" onclick="woToggleMat(${m.id})">
       ${m.img?`<img class="iimg" src="${m.img}">`:`<div class="iph"><i class="bi bi-box-seam"></i></div>`}
       <div class="iinfo"><div class="iname">${m.name}</div><div class="isub">${m.cat||''} · ${m.unit}</div>
-        ${c?`<div class="d-flex align-items-center gap-1 mt-1">
-          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="event.stopPropagation();woAdjMat(${m.id},-1)">−</button>
-          <b style="font-size:.82rem;">${c.qty}</b>
-          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="event.stopPropagation();woAdjMat(${m.id},1)">+</button>
+        ${c?`<div class="d-flex align-items-center gap-1 mt-1" onclick="event.stopPropagation()">
+          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="woAdjMat(${m.id},-1)">−</button>
+          <input type="number" min="1" value="${c.qty}" style="width:44px;font-size:.8rem;text-align:center;border:1px solid #cbd5e1;border-radius:4px;padding:0 2px;"
+            onchange="woSetMat(${m.id},this.value)" onclick="this.select()">
+          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="woAdjMat(${m.id},1)">+</button>
+          <span style="font-size:.7rem;color:#64748b;">${m.unit}</span>
         </div>`:''}
       </div></div></div>`;
   }).join('')||'<div class="col-12 text-center text-muted py-3">ไม่พบรายการ</div>';
@@ -1116,6 +1118,7 @@ function woToggleMat(id){
   woFilterMat();
 }
 function woAdjMat(id,d){const c=woMatCart.find(x=>x.id===id);if(c){c.qty=Math.max(1,c.qty+d);woFilterMat();}}
+function woSetMat(id,v){const c=woMatCart.find(x=>x.id===id);if(c){c.qty=Math.max(1,parseInt(v)||1);woFilterMat();}}
 
 function woLoadTool(){
   const tools=DB.get('tools');
@@ -1137,6 +1140,12 @@ function woFilterTool(){
       <div class="iinfo"><div class="iname">${t.name}</div><div class="isub">${t.cat||''}</div>
         <span class="bs ${SC[t.status]||''}">${SL[t.status]||t.status}</span>
         <div style="font-size:.65rem;color:#94a3b8;margin-top:1px;">${t.qrCode}</div>
+        ${inC?`<div class="d-flex align-items-center gap-1 mt-1" onclick="event.stopPropagation()">
+          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="woAdjTool(${t.id},-1)">−</button>
+          <input type="number" min="1" value="${inC.qty}" style="width:44px;font-size:.8rem;text-align:center;border:1px solid #cbd5e1;border-radius:4px;padding:0 2px;"
+            onchange="woSetTool(${t.id},this.value)" onclick="this.select()">
+          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="woAdjTool(${t.id},1)">+</button>
+        </div>`:''}
       </div></div></div>`;
   }).join('')||'<div class="col-12 text-center text-muted py-3">ไม่พบรายการ</div>';
   updateWOCounts();
@@ -1145,9 +1154,11 @@ function woToggleTool(id){
   const t=DB.get('tools').find(x=>x.id===id);
   const idx=woToolCart.findIndex(x=>x.id===id);
   if(idx>=0)woToolCart.splice(idx,1);
-  else woToolCart.push({id:t.id,name:t.name,qrCode:t.qrCode,img:t.img});
+  else woToolCart.push({id:t.id,name:t.name,qrCode:t.qrCode,img:t.img,qty:1});
   woFilterTool();
 }
+function woAdjTool(id,d){const c=woToolCart.find(x=>x.id===id);if(c){c.qty=Math.max(1,c.qty+d);woFilterTool();}}
+function woSetTool(id,v){const c=woToolCart.find(x=>x.id===id);if(c){c.qty=Math.max(1,parseInt(v)||1);woFilterTool();}}
 function updateWOCounts(){
   document.getElementById('wo-mat-count').textContent=woMatCart.length;
   document.getElementById('wo-tool-count').textContent=woToolCart.length;
@@ -1227,7 +1238,7 @@ function woAddByQR(code){
   if(!tool){alert('ไม่พบเครื่องมือรหัส: '+code);return;}
   if(tool.status!=='available'){alert(`${tool.name} (${tool.qrCode})\nไม่พร้อมใช้งาน — สถานะ: ${tool.status}`);return;}
   if(!woToolCart.find(x=>x.id===tool.id)){
-    woToolCart.push({id:tool.id,name:tool.name,qrCode:tool.qrCode,img:tool.img});
+    woToolCart.push({id:tool.id,name:tool.name,qrCode:tool.qrCode,img:tool.img,qty:1});
     woFilterTool();
     switchWoTab('tool',document.querySelectorAll('#wo-tabs .nav-link')[1]);
     // flash message
@@ -1267,7 +1278,7 @@ function submitWO(){
     approver,note:document.getElementById('wo-note').value,
     status:'active',closed:false,createdBy:cu()?.username||'',
     matItems:woMatCart.map(c=>({materialId:c.id,name:c.name,qty:c.qty,unit:c.unit,returnedQty:0})),
-    toolItems:woToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,status:'borrowed',retDt:null,condition:null,note:''}))
+    toolItems:woToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,qty:c.qty||1,status:'borrowed',retDt:null,condition:null,note:''}))
   };
   if(woToolCart.length){
     const tools=DB.get('tools');
@@ -1304,7 +1315,7 @@ function saveDraft(){
         approver:document.getElementById('wo-approver').value.trim(),
         note:document.getElementById('wo-note').value,
         matItems:woMatCart.map(c=>({materialId:c.id,name:c.name,qty:c.qty,unit:c.unit,returnedQty:0})),
-        toolItems:woToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,status:'draft',retDt:null,condition:null,note:''})),
+        toolItems:woToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,qty:c.qty||1,status:'draft',retDt:null,condition:null,note:''})),
         updatedAt:now.toISOString()
       };
       DB.set('transactions',txs);
@@ -1330,7 +1341,7 @@ function saveDraft(){
     approver:document.getElementById('wo-approver').value.trim(),
     note:document.getElementById('wo-note').value,
     matItems:woMatCart.map(c=>({materialId:c.id,name:c.name,qty:c.qty,unit:c.unit,returnedQty:0})),
-    toolItems:woToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,status:'draft',retDt:null,condition:null,note:''}))
+    toolItems:woToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,qty:c.qty||1,status:'draft',retDt:null,condition:null,note:''}))
   };
   txs.push(tx);DB.set('transactions',txs);
   alert('บันทึกร่างใบงานแล้ว สามารถกลับมาแก้ไขได้ที่หน้า "รายการใบงาน"');
