@@ -1219,7 +1219,11 @@ function woAddByQRText(){
   document.getElementById('wo-qr-input').value='';
 }
 function woAddByQR(code){
-  const tool=DB.get('tools').find(t=>t.qrCode===code);
+  const tool=DB.get('tools').find(t=>
+    (t.qrCode&&t.qrCode===code)||
+    (t.code&&t.code===code)||
+    String(t.id)===code
+  );
   if(!tool){alert('ไม่พบเครื่องมือรหัส: '+code);return;}
   if(tool.status!=='available'){alert(`${tool.name} (${tool.qrCode})\nไม่พร้อมใช้งาน — สถานะ: ${tool.status}`);return;}
   if(!woToolCart.find(x=>x.id===tool.id)){
