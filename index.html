@@ -552,14 +552,32 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
         <div id="tool-qrprev" style="display:flex;justify-content:center;margin-top:6px;"></div>
       </div>
       <div class="col-md-9"><div class="row g-2">
+        <!-- ประเภทเครื่องมือ -->
+        <div class="col-12">
+          <label class="form-label" style="font-size:.8rem;font-weight:600;">ประเภทเครื่องมือ</label>
+          <div class="d-flex gap-3">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="t-type" id="t-type-unique" value="unique" checked onchange="toggleToolTypeFields()">
+              <label class="form-check-label" for="t-type-unique" style="font-size:.82rem;"><i class="bi bi-qr-code me-1 text-primary"></i>เฉพาะชิ้น (มี QR)</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="t-type" id="t-type-stock" value="stock" onchange="toggleToolTypeFields()">
+              <label class="form-check-label" for="t-type-stock" style="font-size:.82rem;"><i class="bi bi-stack me-1 text-success"></i>คลังสต็อก (หลายชิ้น)</label>
+            </div>
+          </div>
+        </div>
         <div class="col-6"><label class="form-label" style="font-size:.8rem;">ชื่อเครื่องมือ *</label><input class="form-control form-control-sm" id="t-name"></div>
         <div class="col-6"><label class="form-label" style="font-size:.8rem;">หมวดหมู่</label><input class="form-control form-control-sm" id="t-cat" list="t-cat-dl"><datalist id="t-cat-dl"></datalist></div>
         <div class="col-4"><label class="form-label" style="font-size:.8rem;">วันที่ซื้อ</label><input type="date" class="form-control form-control-sm" id="t-buy"></div>
         <div class="col-4"><label class="form-label" style="font-size:.8rem;">ราคา (บาท)</label><input type="number" class="form-control form-control-sm" id="t-price" min="0"></div>
         <div class="col-4"><label class="form-label" style="font-size:.8rem;">ผู้จัดจำหน่าย</label><input class="form-control form-control-sm" id="t-sup" list="t-sup-dl"><datalist id="t-sup-dl"></datalist></div>
         <div class="col-4"><label class="form-label" style="font-size:.8rem;">ที่เก็บ</label><input class="form-control form-control-sm" id="t-loc" list="t-loc-dl"><datalist id="t-loc-dl"></datalist></div>
-        <div class="col-4"><label class="form-label" style="font-size:.8rem;">สถานะ</label><select class="form-select form-select-sm" id="t-status"><option value="available">พร้อมใช้</option><option value="borrowed">ถูกยืม</option><option value="repair">ส่งซ่อม</option><option value="retired">เลิกใช้</option></select></div>
+        <!-- unique-only fields -->
+        <div class="col-4" id="t-f-status"><label class="form-label" style="font-size:.8rem;">สถานะ</label><select class="form-select form-select-sm" id="t-status"><option value="available">พร้อมใช้</option><option value="borrowed">ถูกยืม</option><option value="repair">ส่งซ่อม</option><option value="retired">เลิกใช้</option></select></div>
         <div class="col-4"><label class="form-label" style="font-size:.8rem;">อายุใช้งาน (ปี)</label><input type="number" class="form-control form-control-sm" id="t-life"></div>
+        <!-- stock-only fields -->
+        <div class="col-4" id="t-f-totalqty" style="display:none;"><label class="form-label" style="font-size:.8rem;">จำนวนทั้งหมด (ชิ้น)</label><input type="number" class="form-control form-control-sm" id="t-totalqty" min="1" value="1"></div>
+        <div class="col-4" id="t-f-availqty" style="display:none;"><label class="form-label" style="font-size:.8rem;">คงเหลือ (ชิ้น)</label><input type="number" class="form-control form-control-sm" id="t-availqty" min="0" value="1"></div>
         <div class="col-12"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="t-focus"><label class="form-check-label" style="font-size:.8rem;"><i class="bi bi-star-fill text-warning me-1"></i>แสดงในแดชบอร์ด (Focus Tool)</label></div></div>
         <div class="col-12"><label class="form-label" style="font-size:.8rem;">รายละเอียด</label><textarea class="form-control form-control-sm" id="t-desc" rows="2"></textarea></div>
       </div></div>
@@ -1129,23 +1147,36 @@ function woLoadTool(){
 function woFilterTool(){
   const q=(document.getElementById('wo-tool-search').value||'').toLowerCase();
   const cat=document.getElementById('wo-tool-cat').value;
-  const tools=DB.get('tools').filter(t=>t.status!=='retired'&&(!q||t.name.toLowerCase().includes(q)||t.qrCode.toLowerCase().includes(q))&&(!cat||t.cat===cat));
+  const allTools=DB.get('tools');
+  const tools=allTools.filter(t=>{
+    if(t.status==='retired')return false;
+    if(!(!q||t.name.toLowerCase().includes(q)||(t.qrCode||'').toLowerCase().includes(q)))return false;
+    if(cat&&t.cat!==cat)return false;
+    return true;
+  });
   const SL={available:'พร้อมใช้',borrowed:'ถูกยืม',repair:'ส่งซ่อม'};
   const SC={available:'bs-ok',borrowed:'bs-borrow',repair:'bs-repair'};
   document.getElementById('wo-tool-grid').innerHTML=tools.map(t=>{
+    const isStock=t.toolType==='stock';
+    const avail=isStock?(t.availableQty??t.totalQty??0):null;
+    const total=isStock?(t.totalQty||0):null;
+    const ok=isStock?(avail>0):(t.status==='available');
     const inC=woToolCart.find(x=>x.id===t.id);
-    const ok=t.status==='available';
+    const maxQty=isStock?avail:1;
+    const statusBadge=isStock
+      ?(avail===0?`<span class="bs bs-borrow">หมด</span>`:`<span class="bs bs-ok">คงเหลือ ${avail}/${total}</span>`)
+      :`<span class="bs ${SC[t.status]||''}">${SL[t.status]||t.status}</span>`;
+    const qrLine=(!isStock&&t.qrCode)?`<div style="font-size:.65rem;color:#94a3b8;margin-top:1px;">${t.qrCode}</div>`:'';
+    const qtyCtrl=inC?`<div class="d-flex align-items-center gap-1 mt-1" onclick="event.stopPropagation()">
+      <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="woAdjTool(${t.id},-1)">−</button>
+      <input type="number" min="1" max="${maxQty}" value="${inC.qty}" style="width:44px;font-size:.8rem;text-align:center;border:1px solid #cbd5e1;border-radius:4px;padding:0 2px;"
+        onchange="woSetTool(${t.id},this.value,${maxQty})" onclick="this.select()">
+      <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="woAdjTool(${t.id},1,${maxQty})">+</button>
+    </div>`:'';
     return `<div class="col-6 col-md-3 col-xl-2"><div class="item-card${inC?' sel':''}${!ok?' off':''}" onclick="${ok?`woToggleTool(${t.id})`:''}">
       ${t.img?`<img class="iimg" src="${t.img}">`:`<div class="iph"><i class="bi bi-tools"></i></div>`}
       <div class="iinfo"><div class="iname">${t.name}</div><div class="isub">${t.cat||''}</div>
-        <span class="bs ${SC[t.status]||''}">${SL[t.status]||t.status}</span>
-        <div style="font-size:.65rem;color:#94a3b8;margin-top:1px;">${t.qrCode}</div>
-        ${inC?`<div class="d-flex align-items-center gap-1 mt-1" onclick="event.stopPropagation()">
-          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="woAdjTool(${t.id},-1)">−</button>
-          <input type="number" min="1" value="${inC.qty}" style="width:44px;font-size:.8rem;text-align:center;border:1px solid #cbd5e1;border-radius:4px;padding:0 2px;"
-            onchange="woSetTool(${t.id},this.value)" onclick="this.select()">
-          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="woAdjTool(${t.id},1)">+</button>
-        </div>`:''}
+        ${statusBadge}${qrLine}${qtyCtrl}
       </div></div></div>`;
   }).join('')||'<div class="col-12 text-center text-muted py-3">ไม่พบรายการ</div>';
   updateWOCounts();
@@ -1153,12 +1184,12 @@ function woFilterTool(){
 function woToggleTool(id){
   const t=DB.get('tools').find(x=>x.id===id);
   const idx=woToolCart.findIndex(x=>x.id===id);
-  if(idx>=0)woToolCart.splice(idx,1);
-  else woToolCart.push({id:t.id,name:t.name,qrCode:t.qrCode,img:t.img,qty:1});
+  if(idx>=0){woToolCart.splice(idx,1);}
+  else{woToolCart.push({id:t.id,name:t.name,qrCode:t.qrCode||'',img:t.img,qty:1,toolType:t.toolType||'unique'});}
   woFilterTool();
 }
-function woAdjTool(id,d){const c=woToolCart.find(x=>x.id===id);if(c){c.qty=Math.max(1,c.qty+d);woFilterTool();}}
-function woSetTool(id,v){const c=woToolCart.find(x=>x.id===id);if(c){c.qty=Math.max(1,parseInt(v)||1);woFilterTool();}}
+function woAdjTool(id,d,max){const c=woToolCart.find(x=>x.id===id);if(c){c.qty=Math.min(max||999,Math.max(1,c.qty+d));woFilterTool();}}
+function woSetTool(id,v,max){const c=woToolCart.find(x=>x.id===id);if(c){c.qty=Math.min(max||999,Math.max(1,parseInt(v)||1));woFilterTool();}}
 function updateWOCounts(){
   document.getElementById('wo-mat-count').textContent=woMatCart.length;
   document.getElementById('wo-tool-count').textContent=woToolCart.length;
@@ -1282,7 +1313,14 @@ function submitWO(){
   };
   if(woToolCart.length){
     const tools=DB.get('tools');
-    woToolCart.forEach(c=>{const t=tools.find(x=>x.id===c.id);if(t)t.status='borrowed';});
+    woToolCart.forEach(c=>{
+      const t=tools.find(x=>x.id===c.id);if(!t)return;
+      if(t.toolType==='stock'){
+        t.availableQty=Math.max(0,(t.availableQty??t.totalQty??0)-(c.qty||1));
+      } else {
+        t.status='borrowed';
+      }
+    });
     DB.set('tools',tools);
   }
   txs.push(tx);DB.set('transactions',txs);
@@ -1765,7 +1803,14 @@ function doRetToolChecklist(){
     const item=tx.toolItems[r.idx];
     item.status='returned';item.retDt=retDt;item.condition=r.cond;item.note=r.note;
     const tool=tools.find(t=>t.id===item.toolId);
-    if(tool)tool.status=r.cond==='damaged'?'repair':r.cond==='lost'?'retired':'available';
+    if(tool){
+      if(tool.toolType==='stock'){
+        const retQty=item.qty||1;
+        tool.availableQty=Math.min(tool.totalQty||retQty,(tool.availableQty||0)+retQty);
+      } else {
+        tool.status=r.cond==='damaged'?'repair':r.cond==='lost'?'retired':'available';
+      }
+    }
   });
   DB.set('tools',tools);
   const allToolRet=tx.toolItems.every(it=>it.status==='returned');
@@ -2326,20 +2371,35 @@ function delMat(id){if(!confirm('ลบวัสดุนี้?'))return;DB.set
 let rprRows=[];
 function renderToolTbl(){
   const q=(document.getElementById('tool-srch')?.value||'').toLowerCase();
-  const tools=DB.get('tools').filter(t=>!q||t.name.toLowerCase().includes(q)||t.qrCode.toLowerCase().includes(q));
+  const tools=DB.get('tools').filter(t=>!q||t.name.toLowerCase().includes(q)||(t.qrCode||'').toLowerCase().includes(q));
   document.getElementById('t-cat-dl').innerHTML=[...new Set(DB.get('tools').map(t=>t.cat).filter(Boolean))].map(c=>`<option value="${c}">`).join('');
   const SL={available:'พร้อมใช้',borrowed:'ถูกยืม',repair:'ส่งซ่อม',retired:'เลิกใช้'};
   const SC={available:'bs-ok',borrowed:'bs-borrow',repair:'bs-repair',retired:'bs-done'};
-  document.getElementById('tool-tbl').innerHTML=tools.length?tools.map(t=>`
-    <tr>
+  document.getElementById('tool-tbl').innerHTML=tools.length?tools.map(t=>{
+    const isStock=t.toolType==='stock';
+    const avail=t.availableQty??t.totalQty??0;
+    const total=t.totalQty||0;
+    const pct=total>0?Math.round(avail/total*100):0;
+    const stockBadge=avail===0?'bs-borrow':pct<50?'bs-repair':'bs-ok';
+    return `<tr>
       <td>${t.img?`<img src="${t.img}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;">`:'<i class="bi bi-tools text-secondary"></i>'}</td>
-      <td><small class="text-muted">${t.qrCode}</small></td>
+      <td>${isStock?`<span class="bs bs-ok" style="font-size:.7rem;"><i class="bi bi-stack me-1"></i>สต็อก</span>`:`<small class="text-muted">${t.qrCode||'-'}</small>`}</td>
       <td><b>${t.name}</b></td><td>${t.cat||'-'}</td>
-      <td><span class="bs ${SC[t.status]||''}">${SL[t.status]||t.status}</span></td>
+      <td>${isStock?`<span class="bs ${stockBadge}">คงเหลือ ${avail}/${total} ชิ้น</span>`:`<span class="bs ${SC[t.status]||''}">${SL[t.status]||t.status}</span>`}</td>
       <td class="text-center">${t.isFocus?'<i class="bi bi-star-fill text-warning"></i>':'<i class="bi bi-star text-secondary"></i>'}</td>
       <td style="font-size:.78rem;">${t.buyDate||'-'}</td>
       <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openToolModal(${t.id})"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delTool(${t.id})"><i class="bi bi-trash"></i></button></td>
-    </tr>`).join(''):'<tr><td colspan="8" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';
+    </tr>`;}).join(''):'<tr><td colspan="8" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';
+}
+function toggleToolTypeFields(){
+  const isStock=document.getElementById('t-type-stock').checked;
+  document.getElementById('t-f-status').style.display=isStock?'none':'';
+  document.getElementById('t-f-totalqty').style.display=isStock?'':'none';
+  document.getElementById('t-f-availqty').style.display=isStock?'':'none';
+  document.getElementById('tool-qrprev').style.display=isStock?'none':'';
+  // repair tab
+  const rTab=document.querySelector('#tool-mtabs .nav-link:last-child');
+  if(rTab)rTab.style.display=isStock?'none':'';
 }
 function openToolModal(id){
   populateToolDLs();
@@ -2350,6 +2410,11 @@ function openToolModal(id){
   document.getElementById('t-status').value='available';document.getElementById('t-focus').checked=false;
   document.getElementById('tool-idata').value='';document.getElementById('tool-iprev').innerHTML='<i class="bi bi-tools"></i>';
   document.getElementById('tool-qrprev').innerHTML='';
+  // reset to unique type
+  document.getElementById('t-type-unique').checked=true;
+  document.getElementById('t-totalqty').value=1;
+  document.getElementById('t-availqty').value=1;
+  toggleToolTypeFields();
   if(id){const t=DB.get('tools').find(x=>x.id===id);if(t){
     document.getElementById('t-name').value=t.name||'';document.getElementById('t-cat').value=t.cat||'';
     document.getElementById('t-buy').value=t.buyDate||'';document.getElementById('t-price').value=t.price||'';
@@ -2358,8 +2423,16 @@ function openToolModal(id){
     document.getElementById('t-status').value=t.status||'available';document.getElementById('t-focus').checked=!!t.isFocus;
     document.getElementById('tool-idata').value=t.img||'';
     if(t.img)document.getElementById('tool-iprev').innerHTML=`<img src="${t.img}" style="width:100%;height:100%;object-fit:cover;">`;
+    // set toolType
+    const isStock=t.toolType==='stock';
+    document.getElementById(isStock?'t-type-stock':'t-type-unique').checked=true;
+    if(isStock){
+      document.getElementById('t-totalqty').value=t.totalQty||1;
+      document.getElementById('t-availqty').value=t.availableQty??t.totalQty??1;
+    }
+    toggleToolTypeFields();
     rprRows=JSON.parse(JSON.stringify(t.repairs||[]));
-    setTimeout(()=>genQR('tool-qrprev',t.qrCode,90),200);
+    if(!isStock)setTimeout(()=>genQR('tool-qrprev',t.qrCode,90),200);
   }}
   renderRpr();swToolTab('i',document.querySelector('#tool-mtabs .nav-link'));
   new bootstrap.Modal(document.getElementById('toolModal')).show();
@@ -2367,9 +2440,17 @@ function openToolModal(id){
 function saveTool(){
   const name=document.getElementById('t-name').value.trim();if(!name){alert('กรุณาระบุชื่อ');return;}
   const tools=DB.get('tools');const id=document.getElementById('t-id').value;
-  let qrCode=id?tools.find(t=>t.id==id)?.qrCode:'';
-  if(!qrCode){const n=DB.nextId('tool_qr');qrCode='TL-'+String(n).padStart(3,'0');}
-  const obj={name,cat:document.getElementById('t-cat').value.trim(),qrCode,status:document.getElementById('t-status').value,buyDate:document.getElementById('t-buy').value,price:parseFloat(document.getElementById('t-price').value)||0,supplier:document.getElementById('t-sup').value.trim(),location:document.getElementById('t-loc').value.trim(),lifespan:parseInt(document.getElementById('t-life').value)||0,isFocus:document.getElementById('t-focus').checked,desc:document.getElementById('t-desc').value.trim(),img:document.getElementById('tool-idata').value,repairs:rprRows};
+  const isStock=document.getElementById('t-type-stock').checked;
+  let obj={name,cat:document.getElementById('t-cat').value.trim(),toolType:isStock?'stock':'unique',buyDate:document.getElementById('t-buy').value,price:parseFloat(document.getElementById('t-price').value)||0,supplier:document.getElementById('t-sup').value.trim(),location:document.getElementById('t-loc').value.trim(),lifespan:parseInt(document.getElementById('t-life').value)||0,isFocus:document.getElementById('t-focus').checked,desc:document.getElementById('t-desc').value.trim(),img:document.getElementById('tool-idata').value,repairs:isStock?[]:rprRows};
+  if(isStock){
+    const tq=parseInt(document.getElementById('t-totalqty').value)||1;
+    const aq=parseInt(document.getElementById('t-availqty').value)??tq;
+    obj.totalQty=tq;obj.availableQty=Math.min(aq,tq);obj.qrCode='';obj.status='available';
+  } else {
+    let qrCode=id?tools.find(t=>t.id==id)?.qrCode:'';
+    if(!qrCode){const n=DB.nextId('tool_qr');qrCode='TL-'+String(n).padStart(3,'0');}
+    obj.qrCode=qrCode;obj.status=document.getElementById('t-status').value;
+  }
   if(id){const i=tools.findIndex(t=>t.id==id);if(i>=0)tools[i]={...tools[i],...obj};}
   else{obj.id=DB.nextId('tools');tools.push(obj);}
   DB.set('tools',tools);
