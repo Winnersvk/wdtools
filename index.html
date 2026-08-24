@@ -283,10 +283,21 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
       <div class="col-md-5">
         <div class="fsec">
           <div class="fsec-title"><i class="bi bi-qr-code-scan" style="color:#1a56db;"></i>สแกน QR Code เครื่องมือ</div>
-          <p style="font-size:.8rem;color:#64748b;">สแกน QR บนเครื่องมือเพื่อตรวจสอบสถานะ</p>
+          <!-- Camera live scanner -->
+          <div id="cam-wrap" style="display:none;position:relative;margin-bottom:12px;">
+            <video id="cam-video" playsinline autoplay muted style="width:100%;border-radius:8px;max-height:280px;background:#000;object-fit:cover;"></video>
+            <canvas id="cam-canvas" style="display:none;"></canvas>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;">
+              <div style="width:180px;height:180px;border:3px solid #3b82f6;border-radius:12px;box-shadow:0 0 0 2000px rgba(0,0,0,.35);"></div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="stopCam()" style="position:absolute;top:8px;right:8px;"><i class="bi bi-x-circle me-1"></i>ปิดกล้อง</button>
+          </div>
+          <div class="d-flex gap-2 mb-2">
+            <button class="btn btn-success flex-fill" id="cam-btn" onclick="startCam()"><i class="bi bi-camera me-1"></i>เปิดกล้องสแกน</button>
+          </div>
           <div class="input-group mb-2">
             <span class="input-group-text"><i class="bi bi-qr-code"></i></span>
-            <input type="text" class="form-control" id="scan-input" placeholder="พิมพ์รหัสหรือสแกน..." onkeydown="if(event.key==='Enter')scanQR()">
+            <input type="text" class="form-control" id="scan-input" placeholder="พิมพ์รหัส QR แล้วกด Enter..." onkeydown="if(event.key==='Enter')scanQR()">
             <button class="btn btn-primary" onclick="scanQR()">ค้นหา</button>
           </div>
           <div id="scan-result"></div>
@@ -507,9 +518,9 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
     <div class="col-md-9"><div class="row g-2">
       <div class="col-8"><label class="form-label" style="font-size:.8rem;">ชื่อวัสดุ *</label><input class="form-control form-control-sm" id="m-name"></div>
       <div class="col-4"><label class="form-label" style="font-size:.8rem;">หมวดหมู่</label><input class="form-control form-control-sm" id="m-cat" list="m-cat-dl"><datalist id="m-cat-dl"></datalist></div>
-      <div class="col-4"><label class="form-label" style="font-size:.8rem;">หน่วย</label><input class="form-control form-control-sm" id="m-unit" placeholder="ชิ้น/เมตร"></div>
-      <div class="col-4"><label class="form-label" style="font-size:.8rem;">ที่เก็บ</label><input class="form-control form-control-sm" id="m-loc"></div>
-      <div class="col-4"><label class="form-label" style="font-size:.8rem;">ผู้จัดจำหน่าย</label><input class="form-control form-control-sm" id="m-sup"></div>
+      <div class="col-4"><label class="form-label" style="font-size:.8rem;">หน่วย</label><input class="form-control form-control-sm" id="m-unit" list="m-unit-dl" placeholder="ชิ้น/เมตร"><datalist id="m-unit-dl"></datalist></div>
+      <div class="col-4"><label class="form-label" style="font-size:.8rem;">ที่เก็บ</label><input class="form-control form-control-sm" id="m-loc" list="m-loc-dl"><datalist id="m-loc-dl"></datalist></div>
+      <div class="col-4"><label class="form-label" style="font-size:.8rem;">ผู้จัดจำหน่าย</label><input class="form-control form-control-sm" id="m-sup" list="m-sup-dl"><datalist id="m-sup-dl"></datalist></div>
       <div class="col-12"><label class="form-label" style="font-size:.8rem;">รายละเอียด</label><textarea class="form-control form-control-sm" id="m-desc" rows="2"></textarea></div>
     </div></div>
   </div></div>
@@ -536,8 +547,8 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
         <div class="col-6"><label class="form-label" style="font-size:.8rem;">หมวดหมู่</label><input class="form-control form-control-sm" id="t-cat" list="t-cat-dl"><datalist id="t-cat-dl"></datalist></div>
         <div class="col-4"><label class="form-label" style="font-size:.8rem;">วันที่ซื้อ</label><input type="date" class="form-control form-control-sm" id="t-buy"></div>
         <div class="col-4"><label class="form-label" style="font-size:.8rem;">ราคา (บาท)</label><input type="number" class="form-control form-control-sm" id="t-price" min="0"></div>
-        <div class="col-4"><label class="form-label" style="font-size:.8rem;">ผู้จัดจำหน่าย</label><input class="form-control form-control-sm" id="t-sup"></div>
-        <div class="col-4"><label class="form-label" style="font-size:.8rem;">ที่เก็บ</label><input class="form-control form-control-sm" id="t-loc"></div>
+        <div class="col-4"><label class="form-label" style="font-size:.8rem;">ผู้จัดจำหน่าย</label><input class="form-control form-control-sm" id="t-sup" list="t-sup-dl"><datalist id="t-sup-dl"></datalist></div>
+        <div class="col-4"><label class="form-label" style="font-size:.8rem;">ที่เก็บ</label><input class="form-control form-control-sm" id="t-loc" list="t-loc-dl"><datalist id="t-loc-dl"></datalist></div>
         <div class="col-4"><label class="form-label" style="font-size:.8rem;">สถานะ</label><select class="form-select form-select-sm" id="t-status"><option value="available">พร้อมใช้</option><option value="borrowed">ถูกยืม</option><option value="repair">ส่งซ่อม</option><option value="retired">เลิกใช้</option></select></div>
         <div class="col-4"><label class="form-label" style="font-size:.8rem;">อายุใช้งาน (ปี)</label><input type="number" class="form-control form-control-sm" id="t-life"></div>
         <div class="col-12"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="t-focus"><label class="form-check-label" style="font-size:.8rem;"><i class="bi bi-star-fill text-warning me-1"></i>แสดงในแดชบอร์ด (Focus Tool)</label></div></div>
@@ -709,7 +720,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 // ====== FIREBASE LAYER ======
 // *** Admin: fill in your Firebase config here once, then upload index.html to GitHub ***
 // *** All devices will connect automatically — no per-device setup needed ***
-const HARDCODED_FB_CONFIG={apiKey:'AIzaSyAQXxWl-2Y-rFG5jNlUwRVekcBfMaGS1KU',projectId:'factory-equipment-system',authDomain:'factory-equipment-system.firebaseapp.com',appId:'1:309607845421:web:9dc3521fcb97c0491472a4'};
+const HARDCODED_FB_CONFIG={apiKey:'',projectId:'',authDomain:'',appId:''};
 
 const FB_COLS=['tools','materials','transactions','techs','teams','users','claims'];
 let fbDb=null,fbReady=false,fbUnsubscribes=[];
@@ -910,6 +921,7 @@ function showPage(name){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+name+"'")));
   document.getElementById('pg-title').textContent=TITLES[name]||name;
   closeSidebar(); // auto-close sidebar on mobile when navigating
+  if(name!=='scan'&&typeof stopCam==='function')stopCam(); // stop camera when leaving scan page
   if(name==='dashboard')loadDash();
   if(name==='workorder')initWO();
   if(name==='orders'){initOrdFilters();loadOrders();}
@@ -2119,7 +2131,66 @@ function openClaimDetail(claimId){
     </div>`;
   new bootstrap.Modal(document.getElementById('claimDetailModal')).show();
 }
-// ====== QR SCAN PAGE ======
+// ====== OPTIONS (Dropdown memory) ======
+function getOpts(key){return JSON.parse(localStorage.getItem('opts_'+key)||'[]');}
+function addOpt(key,val){if(!val)return;let a=getOpts(key);if(!a.includes(val)){a.push(val);localStorage.setItem('opts_'+key,JSON.stringify(a));}}
+function fillDL(dlId,opts){const dl=document.getElementById(dlId);if(dl)dl.innerHTML=opts.map(o=>`<option value="${o}">`).join('');}
+function populateMatDLs(){
+  fillDL('m-cat-dl',[...new Set([...DB.get('materials').map(m=>m.cat).filter(Boolean),...getOpts('mat_cats')])]);
+  fillDL('m-unit-dl',[...new Set(['ชิ้น','อัน','เมตร','กิโลกรัม','ลิตร','กล่อง','ม้วน','ชุด',...DB.get('materials').map(m=>m.unit).filter(Boolean),...getOpts('mat_units')])]);
+  fillDL('m-loc-dl',[...new Set([...DB.get('materials').map(m=>m.location).filter(Boolean),...getOpts('mat_locs')])]);
+  fillDL('m-sup-dl',[...new Set([...DB.get('materials').map(m=>m.supplier).filter(Boolean),...getOpts('mat_sups')])]);
+}
+function populateToolDLs(){
+  fillDL('t-cat-dl',[...new Set([...DB.get('tools').map(t=>t.cat).filter(Boolean),...getOpts('tool_cats')])]);
+  fillDL('t-loc-dl',[...new Set([...DB.get('tools').map(t=>t.location).filter(Boolean),...getOpts('tool_locs')])]);
+  fillDL('t-sup-dl',[...new Set([...DB.get('tools').map(t=>t.supplier).filter(Boolean),...getOpts('tool_sups')])]);
+}
+// ====== QR SCAN PAGE (live camera) ======
+let camStream=null,camAnimId=null;
+async function startCam(){
+  if(!navigator.mediaDevices?.getUserMedia){alert('เบราว์เซอร์นี้ไม่รองรับกล้อง กรุณาพิมพ์รหัส QR แทน');return;}
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+    const v=document.getElementById('cam-video');
+    v.srcObject=camStream;
+    v.onloadedmetadata=()=>{v.play();camAnimId=requestAnimationFrame(camScanFrame);};
+    document.getElementById('cam-wrap').style.display='';
+    document.getElementById('cam-btn').style.display='none';
+    document.getElementById('scan-result').innerHTML='<div class="alert alert-info py-2" style="font-size:.82rem;"><i class="bi bi-camera me-1"></i>กำลังสแกน — จ่อ QR Code ให้ตรงกล้อง</div>';
+  }catch(e){
+    let msg='ไม่สามารถเปิดกล้องได้';
+    if(e.name==='NotAllowedError')msg='กรุณาอนุญาตให้เข้าถึงกล้องในเบราว์เซอร์';
+    else if(e.name==='NotFoundError')msg='ไม่พบกล้องในอุปกรณ์นี้';
+    alert(msg+'\n\nกรุณาพิมพ์รหัส QR แทน');
+  }
+}
+function camScanFrame(){
+  const v=document.getElementById('cam-video');
+  const c=document.getElementById('cam-canvas');
+  if(!camStream){return;}
+  if(v.readyState>=2&&v.videoWidth>0){
+    c.width=v.videoWidth;c.height=v.videoHeight;
+    const ctx=c.getContext('2d');ctx.drawImage(v,0,0);
+    try{
+      const d=ctx.getImageData(0,0,c.width,c.height);
+      const code=jsQR(d.data,d.width,d.height,{inversionAttempts:'dontInvert'});
+      if(code&&code.data){
+        stopCam();
+        document.getElementById('scan-input').value=code.data;
+        scanQR();
+        return;
+      }
+    }catch(e){}
+  }
+  camAnimId=requestAnimationFrame(camScanFrame);
+}
+function stopCam(){
+  if(camAnimId){cancelAnimationFrame(camAnimId);camAnimId=null;}
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  document.getElementById('cam-wrap').style.display='none';
+  document.getElementById('cam-btn').style.display='';
+}
 function scanQR(){
   const code=document.getElementById('scan-input').value.trim();
   if(!code)return;
@@ -2159,6 +2230,7 @@ function renderMatTbl(){
     </tr>`).join(''):'<tr><td colspan="6" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';
 }
 function openMatModal(id){
+  populateMatDLs();
   document.getElementById('m-id').value=id||'';
   document.getElementById('matMT').textContent=id?'แก้ไขวัสดุ':'เพิ่มวัสดุ';
   ['m-name','m-cat','m-unit','m-loc','m-sup','m-desc'].forEach(f=>document.getElementById(f).value='');
@@ -2174,10 +2246,17 @@ function openMatModal(id){
 function saveMat(){
   const name=document.getElementById('m-name').value.trim();if(!name){alert('กรุณาระบุชื่อวัสดุ');return;}
   const mats=DB.get('materials');const id=document.getElementById('m-id').value;
-  const obj={name,cat:document.getElementById('m-cat').value.trim(),unit:document.getElementById('m-unit').value.trim(),location:document.getElementById('m-loc').value.trim(),supplier:document.getElementById('m-sup').value.trim(),desc:document.getElementById('m-desc').value.trim(),img:document.getElementById('mat-idata').value};
+  const cat=document.getElementById('m-cat').value.trim();
+  const unit=document.getElementById('m-unit').value.trim();
+  const loc=document.getElementById('m-loc').value.trim();
+  const sup=document.getElementById('m-sup').value.trim();
+  const obj={name,cat,unit,location:loc,supplier:sup,desc:document.getElementById('m-desc').value.trim(),img:document.getElementById('mat-idata').value};
   if(id){const i=mats.findIndex(m=>m.id==id);if(i>=0)mats[i]={...mats[i],...obj};}
   else{obj.id=DB.nextId('materials');mats.push(obj);}
-  DB.set('materials',mats);bootstrap.Modal.getInstance(document.getElementById('matModal')).hide();renderMatTbl();
+  DB.set('materials',mats);
+  // Auto-save new options
+  addOpt('mat_cats',cat);addOpt('mat_units',unit);addOpt('mat_locs',loc);addOpt('mat_sups',sup);
+  bootstrap.Modal.getInstance(document.getElementById('matModal')).hide();renderMatTbl();
 }
 function delMat(id){if(!confirm('ลบวัสดุนี้?'))return;DB.set('materials',DB.get('materials').filter(m=>m.id!==id));renderMatTbl();}
 
@@ -2201,6 +2280,7 @@ function renderToolTbl(){
     </tr>`).join(''):'<tr><td colspan="8" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';
 }
 function openToolModal(id){
+  populateToolDLs();
   rprRows=[];
   document.getElementById('t-id').value=id||'';
   document.getElementById('toolMT').textContent=id?'แก้ไขเครื่องมือ':'เพิ่มเครื่องมือ';
@@ -2230,7 +2310,10 @@ function saveTool(){
   const obj={name,cat:document.getElementById('t-cat').value.trim(),qrCode,status:document.getElementById('t-status').value,buyDate:document.getElementById('t-buy').value,price:parseFloat(document.getElementById('t-price').value)||0,supplier:document.getElementById('t-sup').value.trim(),location:document.getElementById('t-loc').value.trim(),lifespan:parseInt(document.getElementById('t-life').value)||0,isFocus:document.getElementById('t-focus').checked,desc:document.getElementById('t-desc').value.trim(),img:document.getElementById('tool-idata').value,repairs:rprRows};
   if(id){const i=tools.findIndex(t=>t.id==id);if(i>=0)tools[i]={...tools[i],...obj};}
   else{obj.id=DB.nextId('tools');tools.push(obj);}
-  DB.set('tools',tools);bootstrap.Modal.getInstance(document.getElementById('toolModal')).hide();renderToolTbl();
+  DB.set('tools',tools);
+  // Auto-save new options
+  addOpt('tool_cats',obj.cat);addOpt('tool_locs',obj.location);addOpt('tool_sups',obj.supplier);
+  bootstrap.Modal.getInstance(document.getElementById('toolModal')).hide();renderToolTbl();
 }
 function delTool(id){if(!confirm('ลบเครื่องมือนี้?'))return;DB.set('tools',DB.get('tools').filter(t=>t.id!==id));renderToolTbl();}
 function renderRpr(){
