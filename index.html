@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>วัสดุ & เครื่องมือช่าง</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="วัสดุ & เครื่องมือ">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<style>
+:root{--primary:#1a56db;--success:#057a55;--sidebar:#1e2a3a;}
+*{box-sizing:border-box;}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
+#login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#1e2a3a,#1a56db);z-index:9999;display:flex;align-items:center;justify-content:center;}
+.login-card{background:#fff;border-radius:16px;padding:36px 32px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.login-logo{text-align:center;margin-bottom:24px;}
+.login-logo i{font-size:2.5rem;color:#1a56db;}
+.login-logo h5{margin:8px 0 0;font-weight:700;color:#1e293b;}
+#sidebar{width:230px;min-height:100vh;background:var(--sidebar);position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;transition:transform .3s;}
+.logo-bar{padding:16px;border-bottom:1px solid #2d3f55;color:#fff;font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:8px;}
+.logo-bar i{color:#60a5fa;font-size:1.3rem;}
+.nav-sec{padding:8px 14px 2px;font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:600;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;color:#94a3b8;cursor:pointer;border-radius:6px;margin:1px 7px;font-size:.82rem;transition:all .15s;}
+.nav-item:hover{background:#2d3f55;color:#e2e8f0;}
+.nav-item.active{background:var(--primary);color:#fff;}
+.nav-item i{width:16px;text-align:center;font-size:.88rem;}
+.nav-item.hidden{display:none!important;}
+#main{margin-left:230px;min-height:100vh;}
+.topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar h5{margin:0;font-weight:700;color:#1e293b;font-size:.95rem;}
+.content{padding:18px 20px;}
+.page{display:none;}.page.active{display:block;}
+.stat-card{background:#fff;border-radius:10px;padding:16px;border:1px solid #e2e8f0;display:flex;align-items:center;gap:12px;}
+.stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;}
+.stat-card .lbl{font-size:.75rem;color:#64748b;}
+.stat-card .val{font-size:1.4rem;font-weight:700;color:#1e293b;line-height:1.1;}
+.tcard{background:#fff;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden;}
+.tcard .table{margin:0;font-size:.82rem;}
+.tcard .table th{background:#f8fafc;font-size:.73rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:600;border-bottom:1px solid #e2e8f0;white-space:nowrap;}
+.tcard .table td{vertical-align:middle;}
+.tcard-title{padding:12px 16px;border-bottom:1px solid #e2e8f0;font-weight:700;font-size:.88rem;display:flex;align-items:center;justify-content:space-between;}
+.fsec{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:16px;margin-bottom:12px;}
+.fsec-title{font-weight:700;font-size:.88rem;color:#1e293b;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.item-card{background:#fff;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:all .15s;overflow:hidden;}
+.item-card:hover{border-color:var(--primary);}
+.item-card.sel{border-color:var(--primary);background:#eff6ff;}
+.item-card.off{opacity:.5;cursor:not-allowed;border-color:#e2e8f0!important;background:#f8fafc;}
+.iph{width:100%;height:80px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#94a3b8;}
+.iimg{width:100%;height:80px;object-fit:cover;}
+.iinfo{padding:7px 9px;}
+.iname{font-weight:600;font-size:.78rem;color:#1e293b;line-height:1.3;}
+.isub{font-size:.68rem;color:#64748b;}
+.bs{display:inline-block;padding:2px 7px;border-radius:20px;font-size:.68rem;font-weight:600;}
+.bs-ok{background:#d1fae5;color:#065f46;}
+.bs-borrow{background:#fee2e2;color:#991b1b;}
+.bs-repair{background:#fef3c7;color:#92400e;}
+.bs-done{background:#e0f2fe;color:#0369a1;}
+.bs-closed{background:#e9d5ff;color:#6b21a8;}
+.chip{display:inline-flex;align-items:center;gap:4px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;padding:3px 9px;font-size:.75rem;cursor:pointer;margin:2px;}
+.chip.on{background:#1a56db;color:#fff;border-color:#1a56db;}
+.chip.busy{background:#fef3c7;border-color:#fcd34d;color:#92400e;cursor:not-allowed;opacity:.7;}
+.focus-tool-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px;}
+.ft-avail{font-size:1.1rem;font-weight:700;color:#057a55;}
+.wo-tabs .nav-link{font-size:.85rem;font-weight:600;color:#64748b;padding:8px 16px;}
+.wo-tabs .nav-link.active{color:var(--primary);}
+.role-badge{padding:2px 10px;border-radius:20px;font-size:.72rem;font-weight:600;}
+.role-admin{background:#fee2e2;color:#991b1b;}
+.role-plan{background:#dbeafe;color:#1e40af;}
+.role-tech{background:#d1fae5;color:#065f46;}
+.modal-header{background:var(--primary);color:#fff;}
+.modal-header .btn-close{filter:invert(1);}
+.rtc-row{border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:8px;transition:background .15s;}
+.rtc-row.checked{background:#f0fdf4;border-color:#86efac;}
+.rtc-row .form-check-input{width:1.2rem;height:1.2rem;cursor:pointer;}
+.ord-row{cursor:pointer;transition:background .1s;}
+.ord-row:hover td{background:#f8fafc;}
+.dash-tx-row{cursor:pointer;}
+.dash-tx-row:hover{background:#eff6ff;}
+@media(max-width:768px){#sidebar{transform:translateX(-100%);}#sidebar.show{transform:translateX(0);}#main{margin-left:0;}}
+@media print{#sidebar,#cart-panel,.topbar,.no-print,#login-overlay{display:none!important;}#main{margin-left:0!important;}body{background:#fff;}.page{display:block!important;}}
+</style>
+</head>
+<body>
+<!-- LOGIN -->
+<div id="login-overlay">
+  <div class="login-card">
+    <div class="login-logo"><i class="bi bi-tools"></i><h5>ระบบวัสดุ & เครื่องมือช่าง</h5><div style="font-size:.78rem;color:#64748b;">โรงงาน v3.1</div></div>
+    <div class="mb-3"><label class="form-label" style="font-size:.82rem;font-weight:600;">ชื่อผู้ใช้</label><input type="text" class="form-control" id="login-user" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="mb-3"><label class="form-label" style="font-size:.82rem;font-weight:600;">รหัสผ่าน</label><input type="password" class="form-control" id="login-pass" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div id="login-err" class="text-danger mb-2" style="font-size:.8rem;display:none;"></div>
+    <button class="btn btn-primary w-100 fw-bold" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div style="margin-top:14px;padding:10px;background:#f8fafc;border-radius:8px;font-size:.72rem;color:#64748b;"><b>Demo:</b> admin / admin123 &nbsp;|&nbsp; plan / plan123 &nbsp;|&nbsp; E001 / 1234</div>
+  </div>
+</div>
+<!-- APP -->
+<div id="app" style="display:none;">
+<div id="sidebar">
+  <div class="logo-bar"><i class="bi bi-tools"></i><div><div style="font-size:.65rem;color:#94a3b8;">โรงงาน</div>วัสดุ & เครื่องมือ</div></div>
+  <div style="flex:1;overflow-y:auto;padding:5px 0;">
+    <div class="nav-sec">ภาพรวม</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><i class="bi bi-speedometer2"></i>แดชบอร์ด</div>
+    <div class="nav-sec nav-plan-admin">ใบงาน</div>
+    <div class="nav-item nav-plan-admin" onclick="showPage('workorder')"><i class="bi bi-file-earmark-plus"></i>สร้างใบงานใหม่</div>
+    <div class="nav-item" onclick="showPage('orders')"><i class="bi bi-list-ul"></i>รายการใบงาน</div>
+    <div class="nav-item" onclick="showPage('history')"><i class="bi bi-clock-history"></i>ประวัติการเบิก-คืน</div>
+    <div class="nav-item" onclick="showPage('pending')"><i class="bi bi-clipboard-x"></i>รายการคงค้างส่งคืน</div>
+    <div class="nav-item nav-plan-admin" onclick="showPage('claim')"><i class="bi bi-exclamation-triangle"></i>การเคลมเครื่องมือ</div>
+    <div class="nav-sec">เครื่องมือ</div>
+    <div class="nav-item" onclick="showPage('scan')"><i class="bi bi-qr-code-scan"></i>สแกน QR Code</div>
+    <div class="nav-sec nav-plan-admin">จัดการข้อมูล</div>
+    <div class="nav-item nav-plan-admin" onclick="showPage('materials')"><i class="bi bi-boxes"></i>จัดการวัสดุ</div>
+    <div class="nav-item nav-plan-admin" onclick="showPage('tools')"><i class="bi bi-hammer"></i>จัดการเครื่องมือ</div>
+    <div class="nav-item nav-admin" onclick="showPage('technicians')"><i class="bi bi-people"></i>ช่าง / ทีม / ผู้ใช้</div>
+    <div class="nav-item nav-plan-admin" onclick="showPage('qrcodes')"><i class="bi bi-qr-code"></i>QR Code</div>
+    <div class="nav-item nav-admin" onclick="openFbConfig()"><i class="bi bi-cloud-arrow-up"></i>ตั้งค่า Firebase</div>
+  </div>
+  <div style="padding:10px 14px;border-top:1px solid #2d3f55;">
+    <div id="sidebar-user" style="color:#94a3b8;font-size:.75rem;margin-bottom:6px;"></div>
+    <div class="mb-2"><span id="sync-status" class="badge bg-secondary" style="font-size:.68rem;"><i class="bi bi-cloud-slash me-1"></i>Offline</span></div>
+    <button class="btn btn-sm btn-outline-secondary w-100" onclick="doLogout()" style="font-size:.75rem;">ออกจากระบบ</button>
+  </div>
+</div>
+<div id="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="btn btn-sm d-md-none" onclick="document.getElementById('sidebar').classList.toggle('show')"><i class="bi bi-list fs-5"></i></button>
+      <h5 id="pg-title">แดชบอร์ด</h5>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span id="hdr-date" style="color:#64748b;font-size:.78rem;"></span>
+      <span id="hdr-role" class="role-badge role-admin"></span>
+      <span id="hdr-name" style="font-size:.82rem;font-weight:600;color:#1e293b;"></span>
+    </div>
+  </div>
+  <div class="content">
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page active">
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="bi bi-file-earmark-text"></i></div><div><div class="lbl">ใบงานทั้งหมด</div><div class="val" id="st-orders">0</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fee2e2;color:#991b1b;"><i class="bi bi-exclamation-circle"></i></div><div><div class="lbl">ใบงานค้างอยู่</div><div class="val" id="st-active-wo">0</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef3c7;color:#b45309;"><i class="bi bi-wrench-adjustable"></i></div><div><div class="lbl">เครื่องมือค้างคืน</div><div class="val" id="st-tool-pending">0</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef3c7;color:#92400e;"><i class="bi bi-people"></i></div><div><div class="lbl">ทีมช่าง</div><div class="val" id="st-teams">0</div></div></div></div>
+    </div>
+    <div class="tcard mb-3" id="focus-section">
+      <div class="tcard-title"><span><i class="bi bi-star-fill me-2" style="color:#f59e0b;"></i>เครื่องมือโฟกัส (ว่าง/ทั้งหมด)</span></div>
+      <div class="p-3"><div class="row g-2" id="focus-grid"></div></div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-title"><span><i class="bi bi-file-earmark-text me-2" style="color:#1a56db;"></i>ใบงานล่าสุด</span><small class="text-muted" style="font-size:.72rem;">คลิกที่แถวเพื่อดูรายละเอียด</small></div>
+      <div style="overflow-x:auto;"><table class="table table-hover mb-0"><thead><tr><th>รหัส</th><th>ชื่องาน</th><th>สถานที่</th><th>ทีม</th><th>ช่าง</th><th>วันที่</th><th>สถานะ</th></tr></thead><tbody id="dash-orders"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- NEW WORK ORDER -->
+  <div id="page-workorder" class="page">
+    <div class="fsec">
+      <div class="fsec-title"><i class="bi bi-file-earmark-plus" style="color:#1a56db;"></i>ข้อมูลใบงาน</div>
+      <div class="row g-2">
+        <div class="col-md-5"><label class="form-label" style="font-size:.8rem;font-weight:600;">ชื่องาน / รายละเอียดงาน *</label><input class="form-control form-control-sm" id="wo-jobname" placeholder="เช่น ซ่อมระบบไฟฟ้าชั้น 2"></div>
+        <div class="col-md-4"><label class="form-label" style="font-size:.8rem;font-weight:600;">สถานที่</label><input class="form-control form-control-sm" id="wo-location" placeholder="เช่น โรงผลิต A"></div>
+        <div class="col-md-3"><label class="form-label" style="font-size:.8rem;font-weight:600;">ผู้อนุมัติ</label><input class="form-control form-control-sm" id="wo-approver"></div>
+        <div class="col-md-3"><label class="form-label" style="font-size:.8rem;font-weight:600;">วันเวลาเบิก</label><input type="datetime-local" class="form-control form-control-sm" id="wo-dt-borrow"></div>
+        <div class="col-md-3"><label class="form-label" style="font-size:.8rem;font-weight:600;">กำหนดคืน</label><input type="datetime-local" class="form-control form-control-sm" id="wo-dt-return"></div>
+        <div class="col-md-3"><label class="form-label" style="font-size:.8rem;font-weight:600;">เลือกทีม *</label><select class="form-select form-select-sm" id="wo-team" onchange="woLoadMembers()"><option value="">-- เลือกทีม --</option></select></div>
+        <div class="col-12">
+          <label class="form-label" style="font-size:.8rem;font-weight:600;">เลือกช่างในทีม <span class="text-muted" style="font-weight:400;">(สีเหลือง = กำลังทำงานอื่นอยู่, ยังเลือกได้)</span></label>
+          <div id="wo-members" style="min-height:34px;padding:3px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;"><span style="color:#94a3b8;font-size:.75rem;padding:4px;">เลือกทีมก่อน</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="fsec" style="padding:0;overflow:hidden;">
+      <ul class="nav nav-tabs wo-tabs px-3 pt-2" id="wo-tabs">
+        <li class="nav-item"><a class="nav-link active" href="#" onclick="switchWoTab('mat',this);return false;"><i class="bi bi-boxes me-1"></i>วัสดุอุปกรณ์ <span class="badge bg-primary" id="wo-mat-count">0</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="switchWoTab('tool',this);return false;"><i class="bi bi-tools me-1"></i>เครื่องมือช่าง <span class="badge bg-success" id="wo-tool-count">0</span></a></li>
+      </ul>
+      <div id="wo-tab-mat" style="padding:14px;">
+        <div class="row g-2 mb-2">
+          <div class="col-md-6"><input class="form-control form-control-sm" id="wo-mat-search" placeholder="🔍 ค้นหาวัสดุ..." oninput="woFilterMat()"></div>
+          <div class="col-md-4"><select class="form-select form-select-sm" id="wo-mat-cat" onchange="woFilterMat()"><option value="">ทุกหมวดหมู่</option></select></div>
+        </div>
+        <div class="row g-2" id="wo-mat-grid"></div>
+      </div>
+      <div id="wo-tab-tool" style="padding:14px;display:none;">
+        <div class="row g-2 mb-2 align-items-end">
+          <div class="col-md-5"><input class="form-control form-control-sm" id="wo-tool-search" placeholder="🔍 ค้นหาเครื่องมือ..." oninput="woFilterTool()"></div>
+          <div class="col-md-3"><select class="form-select form-select-sm" id="wo-tool-cat" onchange="woFilterTool()"><option value="">ทุกหมวดหมู่</option></select></div>
+          <div class="col-auto">
+            <label class="btn btn-outline-success btn-sm" title="สแกน QR จากกล้อง (มือถือ)">
+              <i class="bi bi-camera me-1"></i>สแกน QR
+              <input type="file" accept="image/*" capture="environment" style="display:none;" id="wo-qr-cam" onchange="scanQRFromCamera(this)">
+            </label>
+          </div>
+          <div class="col-auto">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" id="wo-qr-input" placeholder="พิมพ์รหัส QR..." style="width:120px;">
+              <button class="btn btn-outline-secondary" onclick="woAddByQRText()"><i class="bi bi-plus"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="row g-2" id="wo-tool-grid"></div>
+      </div>
+    </div>
+    <div class="fsec d-flex align-items-center justify-content-between gap-3">
+      <div style="font-size:.82rem;color:#64748b;">วัสดุ: <b id="wo-mat-sel">0</b> รายการ &nbsp;|&nbsp; เครื่องมือ: <b id="wo-tool-sel">0</b> รายการ</div>
+      <div class="d-flex gap-2">
+        <textarea class="form-control form-control-sm" id="wo-note" rows="1" placeholder="หมายเหตุ..." style="width:200px;resize:none;"></textarea>
+        <button class="btn btn-primary fw-bold" onclick="submitWO()"><i class="bi bi-check-circle me-1"></i>บันทึกใบงาน</button>
+      </div>
+    </div>
+  </div>
+  <!-- WORK ORDERS LIST -->
+  <div id="page-orders" class="page">
+    <div class="row g-2 mb-3">
+      <div class="col-md-2"><input type="date" class="form-control form-control-sm" id="ord-from" onchange="loadOrders()"></div>
+      <div class="col-md-2"><input type="date" class="form-control form-control-sm" id="ord-to" onchange="loadOrders()"></div>
+      <div class="col-md-3"><select class="form-select form-select-sm" id="ord-team" onchange="loadOrders()"><option value="">ทุกทีม</option></select></div>
+      <div class="col-md-2"><select class="form-select form-select-sm" id="ord-status" onchange="loadOrders()">
+        <option value="">ทุกสถานะ</option><option value="active">กำลังดำเนินการ</option>
+        <option value="returned">คืนแล้ว</option><option value="completed">เสร็จสิ้น</option><option value="closed">ปิดใบงานแล้ว</option>
+      </select></div>
+    </div>
+    <div id="orders-list"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="page-history" class="page">
+    <div class="fsec">
+      <div class="fsec-title"><i class="bi bi-clock-history" style="color:#1a56db;"></i>ประวัติการเบิก-คืน</div>
+      <div class="row g-2 mb-3">
+        <div class="col-md-2"><label style="font-size:.78rem;">วันที่เริ่ม</label><input type="date" class="form-control form-control-sm" id="hist-from" onchange="loadHistory()"></div>
+        <div class="col-md-2"><label style="font-size:.78rem;">วันที่สิ้นสุด</label><input type="date" class="form-control form-control-sm" id="hist-to" onchange="loadHistory()"></div>
+        <div class="col-md-3"><label style="font-size:.78rem;">ช่าง</label><select class="form-select form-select-sm" id="hist-tech" onchange="loadHistory()"><option value="">ทุกช่าง</option></select></div>
+        <div class="col-md-3"><label style="font-size:.78rem;">ประเภท</label><select class="form-select form-select-sm" id="hist-type" onchange="loadHistory()">
+          <option value="">ทั้งหมด</option><option value="mat">เบิกวัสดุ</option><option value="tool">ยืมเครื่องมือ</option>
+        </select></div>
+      </div>
+      <div id="hist-list"></div>
+    </div>
+  </div>
+
+  <!-- QR SCAN -->
+  <div id="page-scan" class="page">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        <div class="fsec">
+          <div class="fsec-title"><i class="bi bi-qr-code-scan" style="color:#1a56db;"></i>สแกน QR Code เครื่องมือ</div>
+          <p style="font-size:.8rem;color:#64748b;">สแกน QR บนเครื่องมือเพื่อตรวจสอบสถานะ</p>
+          <div class="input-group mb-2">
+            <span class="input-group-text"><i class="bi bi-qr-code"></i></span>
+            <input type="text" class="form-control" id="scan-input" placeholder="พิมพ์รหัสหรือสแกน..." onkeydown="if(event.key==='Enter')scanQR()">
+            <button class="btn btn-primary" onclick="scanQR()">ค้นหา</button>
+          </div>
+          <div id="scan-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANAGE MATERIALS -->
+  <div id="page-materials" class="page">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <input class="form-control form-control-sm w-50" id="mat-srch" placeholder="ค้นหา..." oninput="renderMatTbl()">
+      <button class="btn btn-sm btn-primary" onclick="openMatModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มวัสดุ</button>
+    </div>
+    <div class="tcard"><div style="overflow-x:auto;"><table class="table table-hover">
+      <thead><tr><th>รูป</th><th>ชื่อวัสดุ</th><th>หมวด</th><th>หน่วย</th><th>ที่เก็บ</th><th></th></tr></thead>
+      <tbody id="mat-tbl"></tbody>
+    </table></div></div>
+  </div>
+
+  <!-- MANAGE TOOLS -->
+  <div id="page-tools" class="page">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <input class="form-control form-control-sm w-50" id="tool-srch" placeholder="ค้นหา..." oninput="renderToolTbl()">
+      <button class="btn btn-sm btn-primary" onclick="openToolModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มเครื่องมือ</button>
+    </div>
+    <div class="tcard"><div style="overflow-x:auto;"><table class="table table-hover">
+      <thead><tr><th>รูป</th><th>QR</th><th>ชื่อเครื่องมือ</th><th>หมวด</th><th>สถานะ</th><th>⭐</th><th>วันซื้อ</th><th></th></tr></thead>
+      <tbody id="tool-tbl"></tbody>
+    </table></div></div>
+  </div>
+
+  <!-- TECHNICIANS -->
+  <div id="page-technicians" class="page">
+    <ul class="nav nav-tabs mb-3" id="tech-tabs">
+      <li class="nav-item"><a class="nav-link active" href="#" onclick="swTechTab('t',this);return false;"><i class="bi bi-person-badge me-1"></i>ช่าง</a></li>
+      <li class="nav-item"><a class="nav-link" href="#" onclick="swTechTab('tm',this);return false;"><i class="bi bi-people me-1"></i>ทีม</a></li>
+      <li class="nav-item"><a class="nav-link" href="#" onclick="swTechTab('usr',this);return false;"><i class="bi bi-shield-lock me-1"></i>ผู้ใช้งาน</a></li>
+    </ul>
+    <div id="tab-t">
+      <div class="d-flex justify-content-between mb-2"><input class="form-control form-control-sm w-50" placeholder="ค้นหา..." oninput="renderTechTbl(this.value)"><button class="btn btn-sm btn-primary" onclick="openTechModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มช่าง</button></div>
+      <div class="tcard"><table class="table table-hover"><thead><tr><th>รูป</th><th>รหัส</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>เบอร์โทร</th><th></th></tr></thead><tbody id="tech-tbl"></tbody></table></div>
+    </div>
+    <div id="tab-tm" style="display:none;">
+      <div class="d-flex justify-content-between mb-2"><div></div><button class="btn btn-sm btn-primary" onclick="openTeamModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มทีม</button></div>
+      <div class="tcard"><table class="table table-hover"><thead><tr><th>ชื่อทีม</th><th>คำอธิบาย</th><th>สมาชิก</th><th></th></tr></thead><tbody id="team-tbl"></tbody></table></div>
+    </div>
+    <div id="tab-usr" style="display:none;">
+      <div class="d-flex justify-content-between mb-2"><div></div><button class="btn btn-sm btn-primary" onclick="openUserModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มผู้ใช้</button></div>
+      <div class="tcard"><table class="table table-hover"><thead><tr><th>Username</th><th>ชื่อ</th><th>บทบาท</th><th>ช่างที่เชื่อม</th><th></th></tr></thead><tbody id="user-tbl"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- QR CODES -->
+  <div id="page-qrcodes" class="page">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <input class="form-control form-control-sm w-50" id="qr-srch" placeholder="ค้นหาเครื่องมือ..." oninput="renderQRPg()">
+      <button class="btn btn-sm btn-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>พิมพ์ทั้งหมด</button>
+    </div>
+    <div class="row g-3" id="qr-grid"></div>
+  </div>
+
+  <!-- PENDING RETURNS -->
+  <div id="page-pending" class="page">
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-4"><div class="stat-card"><div class="stat-icon" style="background:#fee2e2;color:#991b1b;"><i class="bi bi-wrench-adjustable"></i></div><div><div class="lbl">เครื่องมือค้างคืนทั้งหมด</div><div class="val" id="pend-st-tools">0</div></div></div></div>
+      <div class="col-6 col-md-4"><div class="stat-card"><div class="stat-icon" style="background:#fef3c7;color:#92400e;"><i class="bi bi-file-earmark-x"></i></div><div><div class="lbl">ใบงานที่มีค้างคืน</div><div class="val" id="pend-st-wo">0</div></div></div></div>
+      <div class="col-6 col-md-4"><div class="stat-card"><div class="stat-icon" style="background:#ede9fe;color:#5b21b6;"><i class="bi bi-person-exclamation"></i></div><div><div class="lbl">ช่างที่มีค้างคืน</div><div class="val" id="pend-st-techs">0</div></div></div></div>
+    </div>
+    <div class="row g-2 mb-3">
+      <div class="col-md-3"><select class="form-select form-select-sm" id="pend-team" onchange="loadPending()"><option value="">ทุกทีม</option></select></div>
+      <div class="col-md-3"><select class="form-select form-select-sm" id="pend-tech" onchange="loadPending()"><option value="">ทุกช่าง</option></select></div>
+    </div>
+    <div class="tcard mb-3">
+      <div class="tcard-title"><i class="bi bi-person-lines-fill me-2" style="color:#5b21b6;"></i>สรุปรายช่างที่ค้างคืน</div>
+      <div style="overflow-x:auto;"><table class="table table-sm mb-0">
+        <thead><tr><th>ชื่อช่าง</th><th class="text-center">รายการค้างคืน</th><th class="text-center">จำนวนใบงาน</th></tr></thead>
+        <tbody id="pend-tech-tbl"><tr><td colspan="3" class="text-center text-muted">ไม่มีรายการ</td></tr></tbody>
+      </table></div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-title"><i class="bi bi-list-check me-2" style="color:#991b1b;"></i>ใบงานที่ยังมีค้างส่งคืน <small class="text-muted" style="font-size:.72rem;">คลิกที่รายการเพื่อดูรายละเอียด</small></div>
+      <div id="pending-list" class="p-2"></div>
+    </div>
+  </div>
+
+  <!-- CLAIM PAGE -->
+  <div id="page-claim" class="page">
+    <div class="row g-2 mb-3">
+      <div class="col-md-3"><input type="date" class="form-control form-control-sm" id="clm-from" onchange="loadClaimPage()"></div>
+      <div class="col-md-3"><input type="date" class="form-control form-control-sm" id="clm-to" onchange="loadClaimPage()"></div>
+      <div class="col-md-3"><input class="form-control form-control-sm" id="clm-srch" placeholder="ค้นหาเครื่องมือ / ใบงาน..." oninput="loadClaimPage()"></div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-title"><i class="bi bi-exclamation-triangle me-2" style="color:#dc2626;"></i>ประวัติการเคลมเครื่องมือ</div>
+      <div style="overflow-x:auto;"><table class="table table-hover mb-0" style="font-size:.83rem;">
+        <thead class="table-light"><tr><th>วันที่เคลม</th><th>ใบงาน</th><th>เครื่องมือ</th><th>ประเภท</th><th>ช่าง / ทีม</th><th>หมายเหตุ</th><th>โดย</th></tr></thead>
+        <tbody id="clm-tbody"><tr><td colspan="7" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  </div><!-- .content -->
+</div><!-- #main -->
+<!-- ===== MODALS ===== -->
+<!-- Firebase Config Modal -->
+<div class="modal fade" id="fbConfigModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header" style="background:#0f172a;color:#fff;"><h5 class="modal-title"><i class="bi bi-cloud-arrow-up me-2"></i>ตั้งค่า Firebase Firestore</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="alert alert-info mb-3" style="font-size:.85rem;">
+      <b><i class="bi bi-info-circle me-1"></i>วิธีรับ Firebase Config:</b><br>
+      1. ไปที่ <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a><br>
+      2. สร้างโปรเจกต์ใหม่ → เพิ่ม Web App (<code>&lt;/&gt;</code>)<br>
+      3. คัดลอก config มาวางด้านล่าง<br>
+      4. ไปที่ Firestore Database → สร้าง database (test mode)<br>
+      5. กด "บันทึกและเชื่อมต่อ"
+    </div>
+    <div class="row g-2">
+      <div class="col-md-6"><label class="form-label fw-bold" style="font-size:.82rem;">API Key *</label><input class="form-control form-control-sm" id="fb-apiKey" placeholder="AIzaSy..."></div>
+      <div class="col-md-6"><label class="form-label fw-bold" style="font-size:.82rem;">Project ID *</label><input class="form-control form-control-sm" id="fb-projectId" placeholder="my-factory-app"></div>
+      <div class="col-md-6"><label class="form-label fw-bold" style="font-size:.82rem;">Auth Domain</label><input class="form-control form-control-sm" id="fb-authDomain" placeholder="my-factory-app.firebaseapp.com"></div>
+      <div class="col-md-6"><label class="form-label fw-bold" style="font-size:.82rem;">App ID</label><input class="form-control form-control-sm" id="fb-appId" placeholder="1:123456:web:abc..."></div>
+    </div>
+    <div class="mt-3 d-flex gap-2">
+      <button class="btn btn-outline-warning btn-sm" onclick="fbManualSync()"><i class="bi bi-arrow-repeat me-1"></i>ซิงค์ข้อมูลตอนนี้</button>
+      <button class="btn btn-outline-danger btn-sm" onclick="if(confirm('ลบการเชื่อมต่อ Firebase?')){localStorage.removeItem('fb_config');fbReady=false;fbSyncStatus('offline');bootstrap.Modal.getInstance(document.getElementById('fbConfigModal')).hide();}"><i class="bi bi-trash me-1"></i>ยกเลิกการเชื่อมต่อ</button>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-primary btn-sm" onclick="saveFbConfig()"><i class="bi bi-cloud-check me-1"></i>บันทึกและเชื่อมต่อ</button></div>
+</div></div></div>
+<!-- Claim Tool Modal -->
+<div class="modal fade" id="claimModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>เคลมเครื่องมือ</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="alert alert-warning mb-3"><i class="bi bi-info-circle me-2"></i>เครื่องมือที่เคลมแล้วจะถูก<strong>ลบออกจากระบบ</strong>และไม่สามารถกู้คืนได้</div>
+    <div class="mb-3"><label class="form-label fw-bold">เครื่องมือ</label><div id="clm-tool-name" class="fw-bold text-danger"></div></div>
+    <div class="mb-3"><label class="form-label fw-bold">ใบงาน</label><div id="clm-tx-code" class="text-muted"></div></div>
+    <div class="mb-3"><label class="form-label fw-bold">ประเภทการเคลม *</label>
+      <div class="d-flex gap-3">
+        <div class="form-check"><input class="form-check-input" type="radio" name="clm-type" id="clm-lost" value="lost" checked><label class="form-check-label" for="clm-lost"><i class="bi bi-search me-1"></i>สูญหาย</label></div>
+        <div class="form-check"><input class="form-check-input" type="radio" name="clm-type" id="clm-broken" value="broken"><label class="form-check-label" for="clm-broken"><i class="bi bi-tools me-1"></i>พังซ่อมไม่ได้</label></div>
+      </div>
+    </div>
+    <div class="mb-2"><label class="form-label fw-bold">หมายเหตุ</label><textarea class="form-control form-control-sm" id="clm-note" rows="2" placeholder="รายละเอียดเพิ่มเติม..."></textarea></div>
+    <input type="hidden" id="clm-txid"><input type="hidden" id="clm-toolidx">
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+    <button class="btn btn-danger btn-sm" onclick="doClaimTool()"><i class="bi bi-exclamation-triangle me-1"></i>ยืนยันการเคลม</button>
+  </div>
+</div></div></div>
+<!-- Material -->
+<div class="modal fade" id="matModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="matMT">เพิ่มวัสดุ</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><div class="row g-3">
+    <div class="col-md-3 text-center">
+      <div id="mat-iprev" style="width:100%;height:100px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#94a3b8;overflow:hidden;margin-bottom:6px;"><i class="bi bi-image"></i></div>
+      <label class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-upload me-1"></i>รูป<input type="file" accept="image/*" style="display:none;" onchange="prvImg(this,'mat-iprev','mat-idata')"></label>
+      <input type="hidden" id="mat-idata"><input type="hidden" id="m-id">
+    </div>
+    <div class="col-md-9"><div class="row g-2">
+      <div class="col-8"><label class="form-label" style="font-size:.8rem;">ชื่อวัสดุ *</label><input class="form-control form-control-sm" id="m-name"></div>
+      <div class="col-4"><label class="form-label" style="font-size:.8rem;">หมวดหมู่</label><input class="form-control form-control-sm" id="m-cat" list="m-cat-dl"><datalist id="m-cat-dl"></datalist></div>
+      <div class="col-4"><label class="form-label" style="font-size:.8rem;">หน่วย</label><input class="form-control form-control-sm" id="m-unit" placeholder="ชิ้น/เมตร"></div>
+      <div class="col-4"><label class="form-label" style="font-size:.8rem;">ที่เก็บ</label><input class="form-control form-control-sm" id="m-loc"></div>
+      <div class="col-4"><label class="form-label" style="font-size:.8rem;">ผู้จัดจำหน่าย</label><input class="form-control form-control-sm" id="m-sup"></div>
+      <div class="col-12"><label class="form-label" style="font-size:.8rem;">รายละเอียด</label><textarea class="form-control form-control-sm" id="m-desc" rows="2"></textarea></div>
+    </div></div>
+  </div></div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-primary btn-sm" onclick="saveMat()">บันทึก</button></div>
+</div></div></div>
+
+<!-- Tool -->
+<div class="modal fade" id="toolModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="toolMT">เพิ่มเครื่องมือ</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <ul class="nav nav-tabs mb-3" id="tool-mtabs">
+      <li class="nav-item"><a class="nav-link active" href="#" onclick="swToolTab('i',this);return false;">ข้อมูล</a></li>
+      <li class="nav-item"><a class="nav-link" href="#" onclick="swToolTab('r',this);return false;">ประวัติซ่อม</a></li>
+    </ul>
+    <div id="tt-i"><div class="row g-3">
+      <div class="col-md-3 text-center">
+        <div id="tool-iprev" style="width:100%;height:110px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#94a3b8;overflow:hidden;margin-bottom:6px;"><i class="bi bi-tools"></i></div>
+        <label class="btn btn-outline-secondary btn-sm w-100 mb-2"><i class="bi bi-upload me-1"></i>รูป<input type="file" accept="image/*" style="display:none;" onchange="prvImg(this,'tool-iprev','tool-idata')"></label>
+        <input type="hidden" id="tool-idata"><input type="hidden" id="t-id">
+        <div id="tool-qrprev" style="display:flex;justify-content:center;margin-top:6px;"></div>
+      </div>
+      <div class="col-md-9"><div class="row g-2">
+        <div class="col-6"><label class="form-label" style="font-size:.8rem;">ชื่อเครื่องมือ *</label><input class="form-control form-control-sm" id="t-name"></div>
+        <div class="col-6"><label class="form-label" style="font-size:.8rem;">หมวดหมู่</label><input class="form-control form-control-sm" id="t-cat" list="t-cat-dl"><datalist id="t-cat-dl"></datalist></div>
+        <div class="col-4"><label class="form-label" style="font-size:.8rem;">วันที่ซื้อ</label><input type="date" class="form-control form-control-sm" id="t-buy"></div>
+        <div class="col-4"><label class="form-label" style="font-size:.8rem;">ราคา (บาท)</label><input type="number" class="form-control form-control-sm" id="t-price" min="0"></div>
+        <div class="col-4"><label class="form-label" style="font-size:.8rem;">ผู้จัดจำหน่าย</label><input class="form-control form-control-sm" id="t-sup"></div>
+        <div class="col-4"><label class="form-label" style="font-size:.8rem;">ที่เก็บ</label><input class="form-control form-control-sm" id="t-loc"></div>
+        <div class="col-4"><label class="form-label" style="font-size:.8rem;">สถานะ</label><select class="form-select form-select-sm" id="t-status"><option value="available">พร้อมใช้</option><option value="borrowed">ถูกยืม</option><option value="repair">ส่งซ่อม</option><option value="retired">เลิกใช้</option></select></div>
+        <div class="col-4"><label class="form-label" style="font-size:.8rem;">อายุใช้งาน (ปี)</label><input type="number" class="form-control form-control-sm" id="t-life"></div>
+        <div class="col-12"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="t-focus"><label class="form-check-label" style="font-size:.8rem;"><i class="bi bi-star-fill text-warning me-1"></i>แสดงในแดชบอร์ด (Focus Tool)</label></div></div>
+        <div class="col-12"><label class="form-label" style="font-size:.8rem;">รายละเอียด</label><textarea class="form-control form-control-sm" id="t-desc" rows="2"></textarea></div>
+      </div></div>
+    </div></div>
+    <div id="tt-r" style="display:none;">
+      <div class="d-flex justify-content-between mb-2"><b style="font-size:.88rem;">ประวัติซ่อม</b><button class="btn btn-sm btn-outline-primary" onclick="addRpr()"><i class="bi bi-plus"></i> เพิ่ม</button></div>
+      <div style="overflow-x:auto;"><table class="table table-sm table-bordered"><thead class="table-light"><tr><th>วันที่</th><th>รายละเอียด</th><th>ค่าใช้จ่าย</th><th>ช่าง/บริษัท</th><th></th></tr></thead><tbody id="rpr-body"></tbody></table></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-primary btn-sm" onclick="saveTool()">บันทึก</button></div>
+</div></div></div>
+
+<!-- Tech -->
+<div class="modal fade" id="techModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="techMT">ช่าง</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><div class="row g-2">
+    <div class="col-4 text-center">
+      <div id="tech-iprev" style="width:80px;height:80px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#94a3b8;overflow:hidden;margin:0 auto 6px;"><i class="bi bi-person-circle"></i></div>
+      <label class="btn btn-outline-secondary btn-sm"><i class="bi bi-upload me-1"></i>รูป<input type="file" accept="image/*" style="display:none;" onchange="prvImg(this,'tech-iprev','tech-idata')"></label>
+      <input type="hidden" id="tech-idata"><input type="hidden" id="tc-id">
+    </div>
+    <div class="col-8"><div class="row g-2">
+      <div class="col-12"><label class="form-label" style="font-size:.8rem;">รหัสพนักงาน</label><input class="form-control form-control-sm" id="tc-emp"></div>
+      <div class="col-12"><label class="form-label" style="font-size:.8rem;">ชื่อ-นามสกุล *</label><input class="form-control form-control-sm" id="tc-name"></div>
+      <div class="col-6"><label class="form-label" style="font-size:.8rem;">ตำแหน่ง</label><input class="form-control form-control-sm" id="tc-pos"></div>
+      <div class="col-6"><label class="form-label" style="font-size:.8rem;">เบอร์โทร</label><input class="form-control form-control-sm" id="tc-phone"></div>
+    </div></div>
+  </div></div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-primary btn-sm" onclick="saveTech()">บันทึก</button></div>
+</div></div></div>
+
+<!-- Team -->
+<div class="modal fade" id="teamModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="teamMT">ทีม</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><div class="row g-2">
+    <div class="col-7"><label class="form-label" style="font-size:.8rem;">ชื่อทีม *</label><input class="form-control form-control-sm" id="tm-name"></div>
+    <div class="col-5"><label class="form-label" style="font-size:.8rem;">คำอธิบาย</label><input class="form-control form-control-sm" id="tm-desc"></div>
+    <div class="col-12"><label class="form-label" style="font-size:.8rem;font-weight:600;">สมาชิกในทีม (เลือกได้หลายคน)</label>
+      <div id="tm-members" style="padding:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;min-height:42px;"></div>
+    </div>
+  </div></div>
+  <div class="modal-footer"><input type="hidden" id="tm-id"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-primary btn-sm" onclick="saveTeam()">บันทึก</button></div>
+</div></div></div>
+
+<!-- User -->
+<div class="modal fade" id="userModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="userMT">ผู้ใช้งาน</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><div class="row g-2">
+    <div class="col-6"><label class="form-label" style="font-size:.8rem;">ชื่อผู้ใช้ (username) *</label><input class="form-control form-control-sm" id="u-uname"></div>
+    <div class="col-6"><label class="form-label" style="font-size:.8rem;">รหัสผ่าน</label><input type="password" class="form-control form-control-sm" id="u-pass" placeholder="เว้นว่าง=ไม่เปลี่ยน"></div>
+    <div class="col-6"><label class="form-label" style="font-size:.8rem;">ชื่อ-นามสกุล</label><input class="form-control form-control-sm" id="u-name"></div>
+    <div class="col-6"><label class="form-label" style="font-size:.8rem;">บทบาท *</label><select class="form-select form-select-sm" id="u-role" onchange="toggleTechSel()"><option value="admin">Admin</option><option value="planning">ฝ่ายแผนงาน</option><option value="tech">ช่าง</option></select></div>
+    <div class="col-12" id="u-techrow"><label class="form-label" style="font-size:.8rem;">ช่างที่เชื่อมโยง</label><select class="form-select form-select-sm" id="u-techsel"><option value="">-- ไม่ระบุ --</option></select></div>
+  </div></div>
+  <div class="modal-footer"><input type="hidden" id="u-orig"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-primary btn-sm" onclick="saveUser()">บันทึก</button></div>
+</div></div></div>
+<!-- Return Tool Checklist -->
+<div class="modal fade" id="retToolModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title"><i class="bi bi-arrow-return-left me-2"></i>คืนเครื่องมือ</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <p id="rtc-info" class="text-muted mb-3" style="font-size:.82rem;"></p>
+    <div id="rtc-step1">
+      <div style="font-size:.82rem;font-weight:600;color:#1e293b;margin-bottom:8px;">เลือกรายการที่ต้องการคืน (เช็คถูก = คืน)</div>
+      <div id="rtc-rows"></div>
+      <div class="mb-2 mt-2"><label style="font-size:.8rem;">วันเวลาที่คืน</label><input type="datetime-local" class="form-control form-control-sm" id="rtc-dt" style="max-width:220px;"></div>
+    </div>
+    <div id="rtc-step2" style="display:none;">
+      <div class="alert alert-info py-2 mb-2" style="font-size:.85rem;"><i class="bi bi-info-circle me-1"></i>กรุณายืนยันรายการคืน</div>
+      <div id="rtc-summary-content"></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <input type="hidden" id="rtc-txid">
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+    <button class="btn btn-outline-primary btn-sm" id="rtc-back-btn" onclick="rtcBack()" style="display:none;"><i class="bi bi-arrow-left me-1"></i>แก้ไข</button>
+    <button class="btn btn-warning btn-sm" id="rtc-check-btn" onclick="rtcShowSummary()"><i class="bi bi-check2-all me-1"></i>ตรวจสอบรายการ</button>
+    <button class="btn btn-success btn-sm" id="rtc-confirm-btn" onclick="doRetToolChecklist()" style="display:none;"><i class="bi bi-check-circle me-1"></i>ยืนยันคืน</button>
+  </div>
+</div></div></div>
+
+<!-- Return Materials -->
+<div class="modal fade" id="retMatModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title"><i class="bi bi-arrow-counterclockwise me-2"></i>คืนวัสดุที่เหลือ</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <p id="rmat-info" class="mb-2 text-muted" style="font-size:.82rem;"></p>
+    <div style="overflow-x:auto;">
+    <table class="table table-sm table-bordered">
+      <thead class="table-light"><tr><th>วัสดุ</th><th class="text-center">เบิกไป</th><th class="text-center">คืนแล้ว</th><th class="text-center">คงเหลือ</th><th style="width:110px;">คืนครั้งนี้</th><th></th></tr></thead>
+      <tbody id="rmat-rows"></tbody>
+    </table>
+    </div>
+  </div>
+  <div class="modal-footer"><input type="hidden" id="rmat-txid"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-primary btn-sm" onclick="doRetMat()"><i class="bi bi-check-circle me-1"></i>บันทึกคืน</button></div>
+</div></div></div>
+
+<!-- Close WO Confirm -->
+<div class="modal fade" id="closeWOModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header" style="background:#6b21a8;"><h5 class="modal-title text-white"><i class="bi bi-lock me-2"></i>ปิดใบงาน</h5><button class="btn-close" data-bs-dismiss="modal" style="filter:invert(1);"></button></div>
+  <div class="modal-body">
+    <div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i><b>ปิดใบงานนี้?</b><br>ช่างที่อยู่ในใบงานจะสามารถรับงานใหม่ได้ทันที<br>วัสดุและเครื่องมือที่ยังค้างอยู่ยังคงสถานะเดิม</div>
+    <p id="close-wo-info" class="mb-0" style="font-size:.85rem;"></p>
+  </div>
+  <div class="modal-footer"><input type="hidden" id="close-wo-id"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-sm" style="background:#6b21a8;color:#fff;" onclick="doCloseWO()"><i class="bi bi-lock me-1"></i>ยืนยันปิดใบงาน</button></div>
+</div></div></div>
+
+<!-- Edit Work Order -->
+<div class="modal fade" id="editWOModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">แก้ไขใบงาน</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body" style="max-height:80vh;overflow-y:auto;">
+    <div class="row g-2 mb-2">
+      <div class="col-md-5"><label class="form-label" style="font-size:.8rem;">ชื่องาน</label><input class="form-control form-control-sm" id="ew-job"></div>
+      <div class="col-md-4"><label class="form-label" style="font-size:.8rem;">สถานที่</label><input class="form-control form-control-sm" id="ew-loc"></div>
+      <div class="col-md-3"><label class="form-label" style="font-size:.8rem;">ผู้อนุมัติ</label><input class="form-control form-control-sm" id="ew-apv"></div>
+      <div class="col-md-4"><label class="form-label" style="font-size:.8rem;">วันเวลายืม</label><input type="datetime-local" class="form-control form-control-sm" id="ew-bdt"></div>
+      <div class="col-md-4"><label class="form-label" style="font-size:.8rem;">กำหนดคืน</label><input type="datetime-local" class="form-control form-control-sm" id="ew-rdt"></div>
+      <div class="col-md-4"><label class="form-label" style="font-size:.8rem;">หมายเหตุ</label><input class="form-control form-control-sm" id="ew-note"></div>
+    </div>
+    <div class="mb-2"><label class="form-label" style="font-size:.8rem;font-weight:600;">ช่างในทีม (คลิกเพิ่ม/ลบ)</label><div id="ew-members" style="padding:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;"></div></div>
+    <!-- Edit mat/tool tabs -->
+    <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-top:8px;">
+      <ul class="nav nav-tabs wo-tabs px-3 pt-2" id="ew-tabs">
+        <li class="nav-item"><a class="nav-link active" href="#" onclick="switchEwTab('mat',this);return false;"><i class="bi bi-boxes me-1"></i>วัสดุ <span class="badge bg-primary" id="ew-mat-count">0</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="switchEwTab('tool',this);return false;"><i class="bi bi-tools me-1"></i>เครื่องมือ <span class="badge bg-success" id="ew-tool-count">0</span></a></li>
+      </ul>
+      <div id="ew-tab-mat" style="padding:12px;">
+        <div class="row g-2 mb-2">
+          <div class="col-md-6"><input class="form-control form-control-sm" id="ew-mat-search" placeholder="🔍 ค้นหาวัสดุ..." oninput="ewFilterMat()"></div>
+          <div class="col-md-4"><select class="form-select form-select-sm" id="ew-mat-cat" onchange="ewFilterMat()"><option value="">ทุกหมวดหมู่</option></select></div>
+        </div>
+        <div class="row g-2" id="ew-mat-grid"></div>
+      </div>
+      <div id="ew-tab-tool" style="padding:12px;display:none;">
+        <div class="row g-2 mb-2">
+          <div class="col-md-6"><input class="form-control form-control-sm" id="ew-tool-search" placeholder="🔍 ค้นหาเครื่องมือ..." oninput="ewFilterTool()"></div>
+          <div class="col-md-4"><select class="form-select form-select-sm" id="ew-tool-cat" onchange="ewFilterTool()"><option value="">ทุกหมวดหมู่</option></select></div>
+        </div>
+        <div class="row g-2" id="ew-tool-grid"></div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer"><input type="hidden" id="ew-id"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-primary btn-sm" onclick="saveEditWO()"><i class="bi bi-check-circle me-1"></i>บันทึก</button></div>
+</div></div></div>
+
+<!-- Print Modal -->
+<div class="modal fade" id="printModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title"><i class="bi bi-printer me-2"></i>ใบงาน (พร้อมพิมพ์)</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body bg-white" id="pm-body" style="padding:20px;"></div>
+  <div class="modal-footer no-print">
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button>
+    <button class="btn btn-outline-success btn-sm" onclick="saveJPEG()"><i class="bi bi-image me-1"></i>บันทึก JPEG</button>
+    <button class="btn btn-primary btn-sm" onclick="doPrint()"><i class="bi bi-printer me-1"></i>สั่งพิมพ์</button>
+  </div>
+</div></div></div>
+<input type="hidden" id="pm-txid">
+
+<!-- TX Detail Modal -->
+<div class="modal fade" id="txDetailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="txd-title">รายละเอียดใบงาน</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body" id="txd-body"></div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button><button class="btn btn-primary btn-sm" id="txd-print-btn" onclick="printFromDetail()"><i class="bi bi-printer me-1"></i>พิมพ์</button></div>
+</div></div></div>
+<input type="hidden" id="txd-txid">
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</div><!-- #app -->
+<script>
+// ====== FIREBASE LAYER ======
+const FB_COLS=['tools','materials','transactions','techs','teams','users','claims'];
+let fbDb=null,fbReady=false,fbUnsubscribes=[];
+function fbSyncStatus(s){
+  const el=document.getElementById('sync-status');if(!el)return;
+  const M={offline:['secondary','bi-cloud-slash','Offline'],connecting:['warning','bi-cloud-arrow-up','กำลังเชื่อมต่อ...'],online:['success','bi-cloud-check-fill','ซิงค์แล้ว'],error:['danger','bi-cloud-x','ซิงค์ผิดพลาด']};
+  const[c,ic,t]=M[s]||M.offline;el.innerHTML=`<i class="bi ${ic} me-1"></i>${t}`;el.className='badge bg-'+c;
+}
+function fbInit(){
+  const cfg=JSON.parse(localStorage.getItem('fb_config')||'null');
+  if(!cfg||!cfg.apiKey){fbSyncStatus('offline');return;}
+  try{
+    if(!firebase.apps.length)firebase.initializeApp(cfg);
+    fbDb=firebase.firestore();fbReady=true;fbSyncStatus('connecting');
+    fbPullAll().then(()=>{fbSetupRealtime();fbSyncStatus('online');refreshCurrentView();}).catch(e=>{console.error('FB pull err',e);fbSyncStatus('error');});
+  }catch(e){console.error('FB init err',e);fbSyncStatus('error');}
+}
+async function fbPullAll(){
+  if(!fbReady)return;
+  for(const col of FB_COLS){try{const d=await fbDb.collection('factory_data').doc(col).get();if(d.exists&&d.data().raw)localStorage.setItem('v3_'+col,d.data().raw);}catch(e){console.warn('pull',col,e);}}
+}
+async function fbPush(k,v){
+  if(!fbReady||!fbDb)return;
+  try{await fbDb.collection('factory_data').doc(k).set({raw:JSON.stringify(v),at:firebase.firestore.FieldValue.serverTimestamp()});}
+  catch(e){console.error('FB push err',k,e);fbSyncStatus('error');}
+}
+function fbSetupRealtime(){
+  fbUnsubscribes.forEach(u=>u());fbUnsubscribes=[];
+  FB_COLS.forEach(col=>{
+    const u=fbDb.collection('factory_data').doc(col).onSnapshot(doc=>{
+      if(!doc.exists)return;const raw=doc.data().raw;
+      if(raw&&raw!==localStorage.getItem('v3_'+col)){localStorage.setItem('v3_'+col,raw);refreshCurrentView();}
+    },e=>fbSyncStatus('error'));
+    fbUnsubscribes.push(u);
+  });
+}
+function refreshCurrentView(){
+  const pg=document.querySelector('.page.active');if(!pg)return;
+  const n=pg.id.replace('page-','');
+  if(n==='dashboard')loadDash();
+  else if(n==='orders')loadOrders();
+  else if(n==='pending')loadPending();
+  else if(n==='claim')loadClaimPage();
+  else if(n==='history')loadHistory();
+}
+function openFbConfig(){
+  const cfg=JSON.parse(localStorage.getItem('fb_config')||'{}');
+  document.getElementById('fb-apiKey').value=cfg.apiKey||'';
+  document.getElementById('fb-projectId').value=cfg.projectId||'';
+  document.getElementById('fb-authDomain').value=cfg.authDomain||'';
+  document.getElementById('fb-appId').value=cfg.appId||'';
+  new bootstrap.Modal(document.getElementById('fbConfigModal')).show();
+}
+function saveFbConfig(){
+  const cfg={apiKey:document.getElementById('fb-apiKey').value.trim(),projectId:document.getElementById('fb-projectId').value.trim(),authDomain:document.getElementById('fb-authDomain').value.trim(),appId:document.getElementById('fb-appId').value.trim()};
+  if(!cfg.apiKey||!cfg.projectId){alert('กรุณากรอก API Key และ Project ID');return;}
+  localStorage.setItem('fb_config',JSON.stringify(cfg));
+  bootstrap.Modal.getInstance(document.getElementById('fbConfigModal')).hide();
+  firebase.apps.forEach(a=>a.delete());fbDb=null;fbReady=false;
+  setTimeout(fbInit,500);
+}
+async function fbManualSync(){
+  if(!fbReady){alert('ยังไม่ได้เชื่อมต่อ Firebase');return;}
+  fbSyncStatus('connecting');
+  await fbPullAll();fbSyncStatus('online');refreshCurrentView();alert('ซิงค์ข้อมูลเรียบร้อยแล้ว');
+}
+// ====== DATABASE (localStorage + Firebase sync) ======
+const DB={
+  get:k=>JSON.parse(localStorage.getItem('v3_'+k)||'[]'),
+  set:(k,v)=>{localStorage.setItem('v3_'+k,JSON.stringify(v));if(fbReady)fbPush(k,v);},
+  nextId:k=>{let n=parseInt(localStorage.getItem('v3_seq_'+k)||'0')+1;localStorage.setItem('v3_seq_'+k,n);return n;}
+};
+function cu(){return JSON.parse(localStorage.getItem('v3_user')||'null');}
+function can(...roles){const u=cu();return u&&(u.role==='admin'||roles.includes(u.role));}
+
+function initDemo(){
+  if(localStorage.getItem('v3_inited'))return;
+  DB.set('users',[
+    {username:'admin',password:'admin123',name:'ผู้ดูแลระบบ',role:'admin',techId:null},
+    {username:'plan',password:'plan123',name:'ฝ่ายแผนงาน',role:'planning',techId:null},
+    {username:'E001',password:'1234',name:'นายสมชาย ใจดี',role:'tech',techId:1},
+    {username:'E002',password:'1234',name:'นายมานะ ขยัน',role:'tech',techId:2},
+    {username:'E003',password:'1234',name:'นายวิชัย แข็งแกร่ง',role:'tech',techId:3}
+  ]);
+  DB.set('techs',[
+    {id:1,empId:'E001',name:'นายสมชาย ใจดี',pos:'หัวหน้าทีม',phone:'081-111-1111',img:'',repairs:[]},
+    {id:2,empId:'E002',name:'นายมานะ ขยัน',pos:'ช่างไฟฟ้า',phone:'082-222-2222',img:'',repairs:[]},
+    {id:3,empId:'E003',name:'นายวิชัย แข็งแกร่ง',pos:'หัวหน้าทีม',phone:'083-333-3333',img:'',repairs:[]},
+    {id:4,empId:'E004',name:'นางสาวสุดา ฉลาด',pos:'ช่างเครื่องกล',phone:'084-444-4444',img:'',repairs:[]},
+    {id:5,empId:'E005',name:'นายประสิทธิ์ เก่ง',pos:'หัวหน้าทีม',phone:'085-555-5555',img:'',repairs:[]}
+  ]);localStorage.setItem('v3_seq_techs','5');
+  DB.set('teams',[
+    {id:1,name:'ทีม A - ไฟฟ้า',desc:'งานระบบไฟฟ้า',memberIds:[1,2],memberNames:['นายสมชาย ใจดี','นายมานะ ขยัน']},
+    {id:2,name:'ทีม B - เครื่องกล',desc:'งานเครื่องกล',memberIds:[3,4],memberNames:['นายวิชัย แข็งแกร่ง','นางสาวสุดา ฉลาด']},
+    {id:3,name:'ทีม C - อาคาร',desc:'งานอาคาร',memberIds:[5],memberNames:['นายประสิทธิ์ เก่ง']}
+  ]);localStorage.setItem('v3_seq_teams','3');
+  DB.set('materials',[
+    {id:1,name:'สายไฟ THW 1.5 sq.mm',cat:'ไฟฟ้า',unit:'เมตร',location:'ชั้น A1',supplier:'บริษัท ABC',desc:'',img:''},
+    {id:2,name:'หลอด LED 18W',cat:'ไฟฟ้า',unit:'หลอด',location:'ชั้น A2',supplier:'บริษัท ABC',desc:'',img:''},
+    {id:3,name:'น๊อต M8',cat:'ยึดติด',unit:'ถุง',location:'ชั้น B1',supplier:'',desc:'',img:''},
+    {id:4,name:'น้ำมันหล่อลื่น',cat:'น้ำมัน',unit:'กระป๋อง',location:'ชั้น B2',supplier:'',desc:'',img:''},
+    {id:5,name:'กาวยาง',cat:'กาว',unit:'ขวด',location:'ชั้น C1',supplier:'',desc:'',img:''}
+  ]);localStorage.setItem('v3_seq_materials','5');
+  DB.set('tools',[
+    {id:1,name:'สว่านไฟฟ้า Bosch 13mm',cat:'สว่าน',qrCode:'TL-001',status:'available',buyDate:'2023-01-15',price:3500,supplier:'Bosch',location:'ตู้ T1',lifespan:5,isFocus:true,desc:'',img:'',repairs:[]},
+    {id:2,name:'สว่านไฟฟ้า Bosch 13mm',cat:'สว่าน',qrCode:'TL-002',status:'available',buyDate:'2023-01-15',price:3500,supplier:'Bosch',location:'ตู้ T1',lifespan:5,isFocus:true,desc:'',img:'',repairs:[]},
+    {id:3,name:'ประแจปากตาย 17mm',cat:'ประแจ',qrCode:'TL-003',status:'available',buyDate:'2022-06-01',price:450,supplier:'',location:'ตู้ T1',lifespan:10,isFocus:false,desc:'',img:'',repairs:[]},
+    {id:4,name:'มัลติมิเตอร์ Fluke 117',cat:'วัดไฟฟ้า',qrCode:'TL-004',status:'borrowed',buyDate:'2023-03-10',price:8500,supplier:'Fluke',location:'ตู้ T2',lifespan:7,isFocus:true,desc:'',img:'',repairs:[{date:'2024-02-10',desc:'เปลี่ยนแบตเตอรี่',cost:150,by:'ช่างใน'}]},
+    {id:5,name:'ตู้เชื่อม MIG Lincoln',cat:'เชื่อม',qrCode:'TL-005',status:'available',buyDate:'2021-08-20',price:25000,supplier:'Lincoln',location:'มุม E1',lifespan:10,isFocus:true,desc:'',img:'',repairs:[]},
+    {id:6,name:'ตู้เชื่อม MIG Lincoln',cat:'เชื่อม',qrCode:'TL-006',status:'borrowed',buyDate:'2021-08-20',price:25000,supplier:'Lincoln',location:'มุม E1',lifespan:10,isFocus:true,desc:'',img:'',repairs:[]},
+    {id:7,name:'ตู้เชื่อม MIG Lincoln',cat:'เชื่อม',qrCode:'TL-007',status:'repair',buyDate:'2021-08-20',price:25000,supplier:'Lincoln',location:'มุม E1',lifespan:10,isFocus:true,desc:'',img:'',repairs:[{date:'2025-01-05',desc:'เปลี่ยนหัวฉีดลวด',cost:2200,by:'ช่างใน'}]}
+  ]);localStorage.setItem('v3_seq_tools','7');localStorage.setItem('v3_seq_tool_qr','7');
+  DB.set('transactions',[{
+    id:1,code:'WO-2026-001',date:'2026-07-18',
+    jobName:'ซ่อมระบบไฟฟ้าชั้น 2',jobLocation:'อาคาร A',
+    borrowDatetime:'2026-07-18T08:30',returnDatetime:'2026-07-19T17:00',
+    teamId:1,teamName:'ทีม A - ไฟฟ้า',memberIds:[1,2],memberNames:['นายสมชาย ใจดี','นายมานะ ขยัน'],
+    approver:'ผู้จัดการ',note:'',status:'active',closed:false,createdBy:'plan',
+    matItems:[{materialId:1,name:'สายไฟ THW 1.5 sq.mm',qty:10,unit:'เมตร',returnedQty:0},{materialId:2,name:'หลอด LED 18W',qty:5,unit:'หลอด',returnedQty:0}],
+    toolItems:[{toolId:4,toolName:'มัลติมิเตอร์ Fluke 117',qrCode:'TL-004',status:'borrowed',retDt:null,condition:null,note:''},{toolId:6,toolName:'ตู้เชื่อม MIG Lincoln',qrCode:'TL-006',status:'borrowed',retDt:null,condition:null,note:''}]
+  }]);localStorage.setItem('v3_seq_transactions','1');
+  localStorage.setItem('v3_inited','1');
+}
+
+// ====== AUTH ======
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  const found=DB.get('users').find(x=>x.username===u&&x.password===p);
+  const err=document.getElementById('login-err');
+  if(!found){err.textContent='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';err.style.display='block';return;}
+  localStorage.setItem('v3_user',JSON.stringify({username:found.username,role:found.role,name:found.name,techId:found.techId||null}));
+  startApp();
+}
+function doLogout(){localStorage.removeItem('v3_user');location.reload();}
+function startApp(){
+  const u=cu();if(!u)return;
+  document.getElementById('login-overlay').style.display='none';
+  document.getElementById('app').style.display='';
+  document.getElementById('hdr-name').textContent=u.name;
+  document.getElementById('hdr-date').textContent=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const rmap={admin:'Admin',planning:'ฝ่ายแผนงาน',tech:'ช่าง'};
+  const rcls={admin:'role-admin',planning:'role-plan',tech:'role-tech'};
+  const rb=document.getElementById('hdr-role');rb.textContent=rmap[u.role]||u.role;rb.className='role-badge '+(rcls[u.role]||'');
+  document.getElementById('sidebar-user').textContent=u.name+' ('+rmap[u.role]+')';
+  if(u.role==='tech'){document.querySelectorAll('.nav-plan-admin').forEach(el=>el.classList.add('hidden'));document.querySelectorAll('.nav-admin').forEach(el=>el.classList.add('hidden'));}
+  else if(u.role==='planning'){document.querySelectorAll('.nav-admin').forEach(el=>el.classList.add('hidden'));}
+  fbInit();
+  showPage('dashboard');
+}
+
+// ====== NAVIGATION ======
+const TITLES={dashboard:'แดชบอร์ด',workorder:'สร้างใบงานใหม่',orders:'รายการใบงาน',history:'ประวัติการเบิก-คืน',scan:'สแกน QR Code',materials:'จัดการวัสดุ',tools:'จัดการเครื่องมือ',technicians:'ช่าง / ทีม / ผู้ใช้',qrcodes:'QR Code เครื่องมือ',pending:'รายการคงค้างส่งคืน',claim:'การเคลมเครื่องมือ'};
+function showPage(name){
+  if(!cu())return;
+  const u=cu();
+  if(name==='workorder'&&u.role==='tech')return;
+  if(['materials','tools','qrcodes'].includes(name)&&u.role==='tech')return;
+  if(name==='technicians'&&u.role!=='admin')return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+name+"'")));
+  document.getElementById('pg-title').textContent=TITLES[name]||name;
+  if(name==='dashboard')loadDash();
+  if(name==='workorder')initWO();
+  if(name==='orders'){initOrdFilters();loadOrders();}
+  if(name==='history'){initHistFilters();loadHistory();}
+  if(name==='pending'){initPendingFilters();loadPending();}
+  if(name==='claim'){loadClaimPage();}
+  if(name==='materials')renderMatTbl();
+  if(name==='tools')renderToolTbl();
+  if(name==='technicians'){swTechTab('t',document.querySelector('#tech-tabs .nav-link'));}
+  if(name==='qrcodes')renderQRPg();
+}
+</script>
+<script>
+// ====== DASHBOARD ======
+function loadDash(){
+  const tools=DB.get('tools'),txs=DB.get('transactions'),teams=DB.get('teams');
+  const u=cu();
+  let myTxs=txs;
+  if(u&&u.role==='tech'&&u.techId)myTxs=txs.filter(t=>(t.memberIds||[]).includes(u.techId));
+  document.getElementById('st-orders').textContent=myTxs.length;
+  const activeWOs=txs.filter(t=>t.status==='active'&&!t.closed).length;
+  document.getElementById('st-active-wo').textContent=activeWOs;
+  const toolPending=txs.reduce((s,t)=>s+(t.toolItems||[]).filter(i=>i.status==='borrowed').length,0);
+  document.getElementById('st-tool-pending').textContent=toolPending;
+  document.getElementById('st-teams').textContent=teams.length;
+  // Focus tools grouped
+  const grouped={};
+  tools.filter(t=>t.isFocus).forEach(t=>{
+    const k=t.name;
+    if(!grouped[k])grouped[k]={name:k,cat:t.cat,total:0,avail:0,borrowed:0,repair:0,img:t.img};
+    grouped[k].total++;
+    if(t.status==='available')grouped[k].avail++;
+    else if(t.status==='borrowed')grouped[k].borrowed++;
+    else if(t.status==='repair')grouped[k].repair++;
+  });
+  const fg=document.getElementById('focus-grid');
+  const gArr=Object.values(grouped);
+  fg.innerHTML=gArr.length?gArr.map(g=>`
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="focus-tool-card">
+        ${g.img?`<img src="${g.img}" style="width:38px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`:`<div style="width:38px;height:38px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#94a3b8;flex-shrink:0;"><i class="bi bi-tools"></i></div>`}
+        <div style="min-width:0;">
+          <div style="font-size:.78rem;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${g.name}</div>
+          <div style="font-size:.7rem;color:#64748b;">${g.cat||''}</div>
+          <div style="margin-top:3px;"><span class="ft-avail">${g.avail}</span><span style="color:#94a3b8;font-size:.78rem;">/${g.total}</span><span style="font-size:.68rem;color:#94a3b8;margin-left:4px;">ว่าง/ทั้งหมด</span></div>
+          <div style="height:5px;background:#e2e8f0;border-radius:3px;margin-top:4px;"><div style="height:5px;background:${g.avail===0?'#e02424':g.avail<g.total?'#f59e0b':'#057a55'};border-radius:3px;width:${Math.round(g.avail/g.total*100)}%;transition:.3s;"></div></div>
+        </div>
+      </div>
+    </div>`).join(''):'<div class="col-12 text-center text-muted py-2" style="font-size:.82rem;">ยังไม่มีเครื่องมือโฟกัส</div>';
+  // Unified orders table (last 15)
+  const SLD={active:'กำลังดำเนินการ',returned:'คืนแล้ว',completed:'เสร็จสิ้น'};
+  const SCD={active:'bs-borrow',returned:'bs-ok',completed:'bs-done'};
+  const recentTxs=[...myTxs].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).slice(0,15);
+  document.getElementById('dash-orders').innerHTML=recentTxs.length?recentTxs.map(t=>`
+    <tr class="dash-tx-row" onclick="openTxDetail(${t.id})" title="คลิกเพื่อดูรายละเอียด" style="cursor:pointer;">
+      <td><small class="fw-bold text-primary">${t.code}</small></td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">${t.jobName||'-'}</td>
+      <td style="font-size:.78rem;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.jobLocation||'-'}</td>
+      <td style="font-size:.78rem;">${t.teamName||'-'}</td>
+      <td style="font-size:.75rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${(t.memberNames||[]).join(', ')||'-'}</td>
+      <td style="font-size:.78rem;white-space:nowrap;">${t.date}</td>
+      <td><span class="bs ${SCD[t.closed?'done':t.status]||''}" style="font-size:.65rem;">${t.closed?'ปิดแล้ว':SLD[t.status]||t.status}</span></td>
+    </tr>`).join(''):'<tr><td colspan="7" class="text-center text-muted py-2">ไม่มีข้อมูล</td></tr>';
+}
+
+function openTxDetail(txId){
+  const tx=DB.get('transactions').find(t=>t.id===txId);
+  if(!tx)return;
+  document.getElementById('txd-title').textContent=tx.code+' — '+tx.jobName;
+  document.getElementById('txd-txid').value=tx.id;
+  const SL={active:'กำลังดำเนินการ',returned:'คืนแล้ว',completed:'เสร็จสิ้น',closed:'ปิดใบงาน'};
+  const SC={active:'bs-borrow',returned:'bs-ok',completed:'bs-done',closed:'bs-closed'};
+  const st=tx.closed?'closed':tx.status;
+  document.getElementById('txd-body').innerHTML=`
+    <div class="row g-2 mb-3" style="font-size:.82rem;">
+      <div class="col-6"><b>ทีม:</b> ${tx.teamName||'-'}</div>
+      <div class="col-6"><b>สถานะ:</b> <span class="bs ${SC[st]||''}">${SL[st]||st}</span></div>
+      <div class="col-6"><b>ช่าง:</b> ${(tx.memberNames||[]).join(', ')||'-'}</div>
+      <div class="col-6"><b>ผู้อนุมัติ:</b> ${tx.approver||'-'}</div>
+      <div class="col-6"><b>วันเวลายืม:</b> ${tx.borrowDatetime||'-'}</div>
+      <div class="col-6"><b>กำหนดคืน:</b> ${tx.returnDatetime||'-'}</div>
+      ${tx.note?`<div class="col-12"><b>หมายเหตุ:</b> ${tx.note}</div>`:''}
+    </div>
+    ${tx.matItems&&tx.matItems.length?`<div class="mb-3"><div style="font-size:.82rem;font-weight:700;color:#1a56db;margin-bottom:6px;"><i class="bi bi-boxes me-1"></i>วัสดุ (${tx.matItems.length} รายการ)</div>
+    <table class="table table-sm table-bordered" style="font-size:.8rem;"><thead class="table-light"><tr><th>วัสดุ</th><th>เบิก</th><th>คืนแล้ว</th><th>คงเหลือ</th></tr></thead>
+    <tbody>${tx.matItems.map(it=>`<tr><td>${it.name}</td><td>${it.qty} ${it.unit}</td><td>${it.returnedQty||0}</td><td>${it.qty-(it.returnedQty||0)}</td></tr>`).join('')}</tbody></table></div>`:''}
+    ${tx.toolItems&&tx.toolItems.length?`<div><div style="font-size:.82rem;font-weight:700;color:#059669;margin-bottom:6px;"><i class="bi bi-tools me-1"></i>เครื่องมือ (${tx.toolItems.length} รายการ)</div>
+    <table class="table table-sm table-bordered" style="font-size:.8rem;"><thead class="table-light"><tr><th>เครื่องมือ</th><th>QR</th><th>สถานะ</th><th>คืนเมื่อ</th><th>สภาพ</th>${can('admin','planning')?'<th>เคลม</th>':''}</tr></thead>
+    <tbody>${tx.toolItems.map((it,idx)=>`<tr><td>${it.toolName}</td><td>${it.qrCode}</td><td><span class="bs ${it.status==='borrowed'?'bs-borrow':it.status==='claimed'?'bs-closed':'bs-ok'}">${it.status==='borrowed'?'ยืมอยู่':it.status==='claimed'?'เคลมแล้ว':'คืนแล้ว'}</span></td><td style="font-size:.75rem;">${it.retDt||'-'}</td><td>${it.condition==='good'?'ปกติ':it.condition==='damaged'?'ชำรุด':it.condition==='lost'?'สูญหาย':'-'}</td>${can('admin','planning')?`<td>${it.status==='borrowed'?`<button class='btn btn-sm btn-outline-danger py-0 px-2' style='font-size:.7rem;' onclick='openClaimModal(${tx.id},${idx})'><i class='bi bi-exclamation-triangle'></i> เคลม</button>`:'-'}</td>`:''}</tr>`).join('')}</tbody></table></div>`:''}`;
+  new bootstrap.Modal(document.getElementById('txDetailModal')).show();
+}
+function printFromDetail(){
+  const txId=parseInt(document.getElementById('txd-txid').value);
+  const tx=DB.get('transactions').find(t=>t.id===txId);
+  bootstrap.Modal.getInstance(document.getElementById('txDetailModal')).hide();
+  setTimeout(()=>openPrintModal(tx),400);
+}
+
+// ====== WORK ORDER FORM ======
+let woMatCart=[], woToolCart=[], woSelMembers=[];
+function initWO(){
+  woMatCart=[]; woToolCart=[]; woSelMembers=[];
+  const now=new Date();
+  document.getElementById('wo-dt-borrow').value=now.toISOString().slice(0,16);
+  document.getElementById('wo-dt-return').value=new Date(now.getTime()+24*3600000).toISOString().slice(0,16);
+  ['wo-jobname','wo-location','wo-approver','wo-note'].forEach(id=>document.getElementById(id).value='');
+  const teams=DB.get('teams');
+  document.getElementById('wo-team').innerHTML='<option value="">-- เลือกทีม --</option>'+teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  document.getElementById('wo-members').innerHTML='<span style="color:#94a3b8;font-size:.75rem;padding:4px;">เลือกทีมก่อน</span>';
+  woLoadMat(); woLoadTool(); updateWOCounts();
+  switchWoTab('mat',document.querySelector('#wo-tabs .nav-link'));
+}
+
+function woLoadMembers(){
+  const teamId=parseInt(document.getElementById('wo-team').value)||0;
+  woSelMembers=[];
+  const container=document.getElementById('wo-members');
+  if(!teamId){container.innerHTML='<span style="color:#94a3b8;font-size:.75rem;padding:4px;">เลือกทีมก่อน</span>';return;}
+  const team=DB.get('teams').find(t=>t.id===teamId);
+  if(!team||!team.memberIds||!team.memberIds.length){container.innerHTML='<span style="color:#94a3b8;font-size:.75rem;padding:4px;">ยังไม่มีสมาชิกในทีม</span>';return;}
+  // Find busy techs (in active, unclosed WOs)
+  const busyIds=new Set();
+  DB.get('transactions').filter(t=>t.status==='active'&&!t.closed).forEach(t=>(t.memberIds||[]).forEach(id=>busyIds.add(id)));
+  const techs=DB.get('techs');
+  container.innerHTML=team.memberIds.map(id=>{
+    const t=techs.find(x=>x.id===id);
+    if(!t)return'';
+    const busy=busyIds.has(id);
+    return `<span class="chip${busy?' busy':''}" id="chip-${id}" onclick="woToggleMember(${id},this)" ${busy?'title="กำลังทำงานในใบงานอื่นอยู่"':''}>
+      <i class="bi bi-person-circle"></i>${t.name}${busy?' <i class="bi bi-clock text-warning" style="font-size:.7rem;"></i>':''}</span>`;
+  }).join('');
+}
+
+function woToggleMember(id,el){
+  if(el.classList.contains('busy'))return; // busy = still selectable (just warning)
+  // Actually allow selecting busy ones too — just show warning
+  const idx=woSelMembers.indexOf(id);
+  if(idx>=0){woSelMembers.splice(idx,1);el.classList.remove('on');}
+  else{woSelMembers.push(id);el.classList.add('on');}
+}
+
+function switchWoTab(tab,el){
+  document.getElementById('wo-tab-mat').style.display=tab==='mat'?'block':'none';
+  document.getElementById('wo-tab-tool').style.display=tab==='tool'?'block':'none';
+  document.querySelectorAll('#wo-tabs .nav-link').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+
+function woLoadMat(){
+  const mats=DB.get('materials');
+  const cats=[...new Set(mats.map(m=>m.cat).filter(Boolean))];
+  document.getElementById('wo-mat-cat').innerHTML='<option value="">ทุกหมวดหมู่</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+  woFilterMat();
+}
+function woFilterMat(){
+  const q=(document.getElementById('wo-mat-search').value||'').toLowerCase();
+  const cat=document.getElementById('wo-mat-cat').value;
+  const mats=DB.get('materials').filter(m=>(!q||m.name.toLowerCase().includes(q))&&(!cat||m.cat===cat));
+  document.getElementById('wo-mat-grid').innerHTML=mats.map(m=>{
+    const c=woMatCart.find(x=>x.id===m.id);
+    return `<div class="col-6 col-md-3 col-xl-2"><div class="item-card${c?' sel':''}" onclick="woToggleMat(${m.id})">
+      ${m.img?`<img class="iimg" src="${m.img}">`:`<div class="iph"><i class="bi bi-box-seam"></i></div>`}
+      <div class="iinfo"><div class="iname">${m.name}</div><div class="isub">${m.cat||''} · ${m.unit}</div>
+        ${c?`<div class="d-flex align-items-center gap-1 mt-1">
+          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="event.stopPropagation();woAdjMat(${m.id},-1)">−</button>
+          <b style="font-size:.82rem;">${c.qty}</b>
+          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="event.stopPropagation();woAdjMat(${m.id},1)">+</button>
+        </div>`:''}
+      </div></div></div>`;
+  }).join('')||'<div class="col-12 text-center text-muted py-3">ไม่พบรายการ</div>';
+  updateWOCounts();
+}
+function woToggleMat(id){
+  const m=DB.get('materials').find(x=>x.id===id);
+  const idx=woMatCart.findIndex(x=>x.id===id);
+  if(idx>=0)woMatCart.splice(idx,1);
+  else woMatCart.push({id:m.id,name:m.name,qty:1,unit:m.unit,img:m.img});
+  woFilterMat();
+}
+function woAdjMat(id,d){const c=woMatCart.find(x=>x.id===id);if(c){c.qty=Math.max(1,c.qty+d);woFilterMat();}}
+
+function woLoadTool(){
+  const tools=DB.get('tools');
+  const cats=[...new Set(tools.map(t=>t.cat).filter(Boolean))];
+  document.getElementById('wo-tool-cat').innerHTML='<option value="">ทุกหมวดหมู่</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+  woFilterTool();
+}
+function woFilterTool(){
+  const q=(document.getElementById('wo-tool-search').value||'').toLowerCase();
+  const cat=document.getElementById('wo-tool-cat').value;
+  const tools=DB.get('tools').filter(t=>t.status!=='retired'&&(!q||t.name.toLowerCase().includes(q)||t.qrCode.toLowerCase().includes(q))&&(!cat||t.cat===cat));
+  const SL={available:'พร้อมใช้',borrowed:'ถูกยืม',repair:'ส่งซ่อม'};
+  const SC={available:'bs-ok',borrowed:'bs-borrow',repair:'bs-repair'};
+  document.getElementById('wo-tool-grid').innerHTML=tools.map(t=>{
+    const inC=woToolCart.find(x=>x.id===t.id);
+    const ok=t.status==='available';
+    return `<div class="col-6 col-md-3 col-xl-2"><div class="item-card${inC?' sel':''}${!ok?' off':''}" onclick="${ok?`woToggleTool(${t.id})`:''}">
+      ${t.img?`<img class="iimg" src="${t.img}">`:`<div class="iph"><i class="bi bi-tools"></i></div>`}
+      <div class="iinfo"><div class="iname">${t.name}</div><div class="isub">${t.cat||''}</div>
+        <span class="bs ${SC[t.status]||''}">${SL[t.status]||t.status}</span>
+        <div style="font-size:.65rem;color:#94a3b8;margin-top:1px;">${t.qrCode}</div>
+      </div></div></div>`;
+  }).join('')||'<div class="col-12 text-center text-muted py-3">ไม่พบรายการ</div>';
+  updateWOCounts();
+}
+function woToggleTool(id){
+  const t=DB.get('tools').find(x=>x.id===id);
+  const idx=woToolCart.findIndex(x=>x.id===id);
+  if(idx>=0)woToolCart.splice(idx,1);
+  else woToolCart.push({id:t.id,name:t.name,qrCode:t.qrCode,img:t.img});
+  woFilterTool();
+}
+function updateWOCounts(){
+  document.getElementById('wo-mat-count').textContent=woMatCart.length;
+  document.getElementById('wo-tool-count').textContent=woToolCart.length;
+  document.getElementById('wo-mat-sel').textContent=woMatCart.length;
+  document.getElementById('wo-tool-sel').textContent=woToolCart.length;
+}
+// QR camera scan in work order
+function scanQRFromCamera(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      canvas.width=img.width;canvas.height=img.height;
+      const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);
+      const data=ctx.getImageData(0,0,canvas.width,canvas.height);
+      try{
+        const code=jsQR(data.data,data.width,data.height);
+        if(code)woAddByQR(code.data);
+        else alert('ไม่พบ QR Code ในรูปภาพ — ลองถ่ายใหม่ให้ชัดขึ้น');
+      }catch(e){alert('ไม่สามารถอ่าน QR ได้: '+e.message);}
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+function woAddByQRText(){
+  const code=document.getElementById('wo-qr-input').value.trim();
+  if(!code)return;
+  woAddByQR(code);
+  document.getElementById('wo-qr-input').value='';
+}
+function woAddByQR(code){
+  const tool=DB.get('tools').find(t=>t.qrCode===code);
+  if(!tool){alert('ไม่พบเครื่องมือรหัส: '+code);return;}
+  if(tool.status!=='available'){alert(`${tool.name} (${tool.qrCode})\nไม่พร้อมใช้งาน — สถานะ: ${tool.status}`);return;}
+  if(!woToolCart.find(x=>x.id===tool.id)){
+    woToolCart.push({id:tool.id,name:tool.name,qrCode:tool.qrCode,img:tool.img});
+    woFilterTool();
+    switchWoTab('tool',document.querySelectorAll('#wo-tabs .nav-link')[1]);
+    // flash message
+    const msg=document.createElement('div');
+    msg.className='alert alert-success py-1 px-3 mb-2';msg.style.fontSize='.82rem';
+    msg.innerHTML=`<i class="bi bi-check-circle me-1"></i>เพิ่ม <b>${tool.name}</b> (${tool.qrCode}) แล้ว`;
+    document.getElementById('wo-tool-grid').before(msg);
+    setTimeout(()=>msg.remove(),2500);
+  } else alert(tool.name+' อยู่ในรายการแล้ว');
+}
+</script>
+<script>
+// ====== SUBMIT WORK ORDER ======
+function submitWO(){
+  if(!woMatCart.length&&!woToolCart.length){alert('กรุณาเลือกวัสดุหรือเครื่องมืออย่างน้อย 1 รายการ');return;}
+  const jobName=document.getElementById('wo-jobname').value.trim();
+  const teamId=parseInt(document.getElementById('wo-team').value)||0;
+  const approver=document.getElementById('wo-approver').value.trim();
+  if(!jobName){alert('กรุณาระบุชื่องาน');return;}
+  if(!teamId){alert('กรุณาเลือกทีม');return;}
+  if(!approver){alert('กรุณาระบุผู้อนุมัติ');return;}
+  if(!woSelMembers.length){alert('กรุณาเลือกช่างในทีมอย่างน้อย 1 คน');return;}
+  const teams=DB.get('teams'),techs=DB.get('techs');
+  const team=teams.find(t=>t.id===teamId);
+  const memberNames=woSelMembers.map(id=>techs.find(t=>t.id===id)?.name||'').filter(Boolean);
+  const txs=DB.get('transactions');
+  const id=DB.nextId('transactions');
+  const now=new Date();
+  const tx={
+    id,code:'WO-'+now.getFullYear()+'-'+String(id).padStart(3,'0'),
+    date:now.toISOString().slice(0,10),
+    jobName,jobLocation:document.getElementById('wo-location').value.trim(),
+    borrowDatetime:document.getElementById('wo-dt-borrow').value,
+    returnDatetime:document.getElementById('wo-dt-return').value,
+    teamId,teamName:team?team.name:'',
+    memberIds:woSelMembers,memberNames,
+    approver,note:document.getElementById('wo-note').value,
+    status:'active',closed:false,createdBy:cu()?.username||'',
+    matItems:woMatCart.map(c=>({materialId:c.id,name:c.name,qty:c.qty,unit:c.unit,returnedQty:0})),
+    toolItems:woToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,status:'borrowed',retDt:null,condition:null,note:''}))
+  };
+  if(woToolCart.length){
+    const tools=DB.get('tools');
+    woToolCart.forEach(c=>{const t=tools.find(x=>x.id===c.id);if(t)t.status='borrowed';});
+    DB.set('tools',tools);
+  }
+  txs.push(tx);DB.set('transactions',txs);
+  woMatCart=[];woToolCart=[];woSelMembers=[];
+  updateWOCounts();woFilterMat();woFilterTool();
+  openPrintModal(tx);
+}
+
+// ====== ORDERS LIST ======
+function initOrdFilters(){
+  const teams=DB.get('teams');
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('ord-from').value=today.slice(0,7)+'-01';
+  document.getElementById('ord-to').value=today;
+  document.getElementById('ord-team').innerHTML='<option value="">ทุกทีม</option>'+teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+}
+
+function loadOrders(){
+  const from=document.getElementById('ord-from').value;
+  const to=document.getElementById('ord-to').value;
+  const teamId=parseInt(document.getElementById('ord-team').value)||0;
+  const statusFilt=document.getElementById('ord-status').value;
+  const u=cu();
+  let txs=DB.get('transactions').filter(t=>{
+    if(from&&t.date<from)return false;
+    if(to&&t.date>to)return false;
+    if(teamId&&t.teamId!==teamId)return false;
+    if(statusFilt==='closed'&&!t.closed)return false;
+    if(statusFilt&&statusFilt!=='closed'&&t.status!==statusFilt)return false;
+    if(u&&u.role==='tech'&&u.techId&&!(t.memberIds||[]).includes(u.techId))return false;
+    return true;
+  }).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+
+  const SL={active:'กำลังดำเนินการ',returned:'คืนแล้ว',completed:'เสร็จสิ้น'};
+  const SC={active:'bs-borrow',returned:'bs-ok',completed:'bs-done'};
+  const container=document.getElementById('orders-list');
+  if(!txs.length){container.innerHTML='<div class="text-center text-muted py-4">ไม่มีรายการใบงาน</div>';return;}
+  const isEditable=can('admin','planning');
+  const isAdmin=can('admin');
+
+  container.innerHTML=txs.map(tx=>{
+    const hasTool=tx.toolItems&&tx.toolItems.length>0;
+    const hasMat=tx.matItems&&tx.matItems.length>0;
+    const hasActiveTool=hasTool&&tx.toolItems.some(it=>it.status==='borrowed');
+    const hasMatRet=hasMat&&tx.matItems.some(it=>(it.qty-(it.returnedQty||0))>0);
+    const st=tx.closed?'closed':tx.status;
+    return `<div class="tcard mb-2">
+      <div style="padding:12px 16px;">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <span class="fw-bold text-primary" style="font-size:.88rem;">${tx.code}</span>
+            <span class="ms-2 fw-bold" style="font-size:.92rem;">${tx.jobName||'-'}</span>
+            <span class="ms-2 text-muted" style="font-size:.78rem;">${tx.jobLocation||''}</span>
+          </div>
+          <div class="d-flex align-items-center gap-1 flex-wrap">
+            <span class="bs ${SC[tx.status]||''}">${SL[tx.status]||tx.status}</span>
+            ${tx.closed?'<span class="bs bs-closed"><i class="bi bi-lock-fill me-1"></i>ปิดแล้ว</span>':''}
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.72rem;" onclick="openTxDetail(${tx.id})"><i class="bi bi-eye me-1"></i>ดู</button>
+            ${isEditable&&!tx.closed?`<button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.72rem;" onclick="openEditWO(${tx.id})"><i class="bi bi-pencil me-1"></i>แก้ไข</button>`:''}
+            ${isEditable&&hasActiveTool&&!tx.closed?`<button class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:.72rem;" onclick="openRetToolModal(${tx.id})"><i class="bi bi-arrow-return-left me-1"></i>คืนเครื่องมือ</button>`:''}
+            ${isEditable&&hasMatRet?`<button class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:.72rem;" onclick="openRetMat(${tx.id})"><i class="bi bi-arrow-counterclockwise me-1"></i>คืนวัสดุ</button>`:''}
+            ${isAdmin&&!tx.closed&&tx.status==='active'?`<button class="btn btn-sm py-0 px-2" style="font-size:.72rem;background:#6b21a8;color:#fff;" onclick="openCloseWO(${tx.id})"><i class="bi bi-lock me-1"></i>ปิดใบงาน</button>`:''}
+            <button class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:.72rem;" onclick="openPrintModal(DB.get('transactions').find(t=>t.id==${tx.id}))"><i class="bi bi-printer me-1"></i>พิมพ์</button>
+          </div>
+        </div>
+        <div style="font-size:.78rem;color:#64748b;margin-top:6px;">
+          <span><i class="bi bi-people me-1"></i>${tx.teamName||'-'}</span>
+          <span class="ms-3"><i class="bi bi-person me-1"></i>${(tx.memberNames||[]).join(', ')}</span>
+          <span class="ms-3"><i class="bi bi-calendar me-1"></i>${tx.date}</span>
+          <span class="ms-3"><i class="bi bi-person-check me-1"></i>${tx.approver||'-'}</span>
+          ${tx.closed?`<span class="ms-3 text-purple"><i class="bi bi-lock me-1"></i>ปิดโดย: ${tx.closedBy||''}</span>`:''}
+        </div>
+
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ====== CLOSE WORK ORDER ======
+function openCloseWO(txId){
+  const tx=DB.get('transactions').find(t=>t.id===txId);
+  if(!tx)return;
+  document.getElementById('close-wo-id').value=txId;
+  document.getElementById('close-wo-info').innerHTML=`<b>${tx.code}</b> — ${tx.jobName}<br>ทีม: ${tx.teamName} | วันที่: ${tx.date}`;
+  new bootstrap.Modal(document.getElementById('closeWOModal')).show();
+}
+function doCloseWO(){
+  const txId=parseInt(document.getElementById('close-wo-id').value);
+  const txs=DB.get('transactions');
+  const tx=txs.find(t=>t.id===txId);
+  if(tx){tx.closed=true;tx.closedAt=new Date().toISOString();tx.closedBy=cu()?.username||'';}
+  DB.set('transactions',txs);
+  bootstrap.Modal.getInstance(document.getElementById('closeWOModal')).hide();
+  loadOrders();loadDash();
+}
+
+// ====== EDIT WORK ORDER ======
+let ewMatCart=[], ewToolCart=[], ewOrigToolIds=[];
+function openEditWO(txId){
+  const tx=DB.get('transactions').find(t=>t.id===txId);
+  if(!tx)return;
+  document.getElementById('ew-id').value=tx.id;
+  document.getElementById('ew-job').value=tx.jobName||'';
+  document.getElementById('ew-loc').value=tx.jobLocation||'';
+  document.getElementById('ew-apv').value=tx.approver||'';
+  document.getElementById('ew-bdt').value=tx.borrowDatetime||'';
+  document.getElementById('ew-rdt').value=tx.returnDatetime||'';
+  document.getElementById('ew-note').value=tx.note||'';
+  // Members
+  const team=DB.get('teams').find(t=>t.id===tx.teamId);
+  const techs=DB.get('techs');
+  const memberPool=team?team.memberIds:[];
+  document.getElementById('ew-members').innerHTML=memberPool.map(id=>{
+    const t=techs.find(x=>x.id===id);if(!t)return'';
+    const sel=(tx.memberIds||[]).includes(id);
+    return `<span class="chip${sel?' on':''}" onclick="this.classList.toggle('on')" data-tid="${id}"><i class="bi bi-person-circle"></i>${t.name}</span>`;
+  }).join('')||'<span style="color:#94a3b8;font-size:.75rem;">ไม่มีสมาชิก</span>';
+  // Init mat/tool carts from existing tx
+  ewMatCart=JSON.parse(JSON.stringify(tx.matItems||[])).map(it=>({id:it.materialId,name:it.name,qty:it.qty,unit:it.unit,returnedQty:it.returnedQty||0}));
+  ewOrigToolIds=(tx.toolItems||[]).filter(it=>it.status==='borrowed').map(it=>it.toolId);
+  ewToolCart=JSON.parse(JSON.stringify(tx.toolItems||[])).map(it=>({id:it.toolId,name:it.toolName,qrCode:it.qrCode,status:it.status,retDt:it.retDt,condition:it.condition,note:it.note||''}));
+  ewLoadMat(); ewLoadTool();
+  switchEwTab('mat',document.querySelector('#ew-tabs .nav-link'));
+  new bootstrap.Modal(document.getElementById('editWOModal')).show();
+}
+function switchEwTab(tab,el){
+  document.getElementById('ew-tab-mat').style.display=tab==='mat'?'block':'none';
+  document.getElementById('ew-tab-tool').style.display=tab==='tool'?'block':'none';
+  document.querySelectorAll('#ew-tabs .nav-link').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+function ewUpdateCounts(){
+  document.getElementById('ew-mat-count').textContent=ewMatCart.length;
+  document.getElementById('ew-tool-count').textContent=ewToolCart.length;
+}
+function ewLoadMat(){
+  const mats=DB.get('materials');
+  const cats=[...new Set(mats.map(m=>m.cat).filter(Boolean))];
+  document.getElementById('ew-mat-cat').innerHTML='<option value="">ทุกหมวดหมู่</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+  ewFilterMat();
+}
+function ewFilterMat(){
+  const q=(document.getElementById('ew-mat-search').value||'').toLowerCase();
+  const cat=document.getElementById('ew-mat-cat').value;
+  const mats=DB.get('materials').filter(m=>(!q||m.name.toLowerCase().includes(q))&&(!cat||m.cat===cat));
+  document.getElementById('ew-mat-grid').innerHTML=mats.map(m=>{
+    const c=ewMatCart.find(x=>x.id===m.id);
+    return `<div class="col-6 col-md-3 col-xl-2"><div class="item-card${c?' sel':''}" onclick="ewToggleMat(${m.id})">
+      ${m.img?`<img class="iimg" src="${m.img}">`:`<div class="iph"><i class="bi bi-box-seam"></i></div>`}
+      <div class="iinfo"><div class="iname">${m.name}</div><div class="isub">${m.cat||''} · ${m.unit}</div>
+        ${c?`<div class="d-flex align-items-center gap-1 mt-1">
+          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="event.stopPropagation();ewAdjMat(${m.id},-1)">−</button>
+          <b style="font-size:.82rem;">${c.qty}</b>
+          <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.75rem;" onclick="event.stopPropagation();ewAdjMat(${m.id},1)">+</button>
+        </div>`:''}
+      </div></div></div>`;
+  }).join('')||'<div class="col-12 text-center text-muted py-3">ไม่พบรายการ</div>';
+  ewUpdateCounts();
+}
+function ewToggleMat(id){
+  const m=DB.get('materials').find(x=>x.id===id);
+  const idx=ewMatCart.findIndex(x=>x.id===id);
+  if(idx>=0)ewMatCart.splice(idx,1);
+  else ewMatCart.push({id:m.id,name:m.name,qty:1,unit:m.unit,returnedQty:0});
+  ewFilterMat();
+}
+function ewAdjMat(id,d){const c=ewMatCart.find(x=>x.id===id);if(c){c.qty=Math.max(1,c.qty+d);ewFilterMat();}}
+function ewLoadTool(){
+  const tools=DB.get('tools');
+  const cats=[...new Set(tools.map(t=>t.cat).filter(Boolean))];
+  document.getElementById('ew-tool-cat').innerHTML='<option value="">ทุกหมวดหมู่</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+  ewFilterTool();
+}
+function ewFilterTool(){
+  const q=(document.getElementById('ew-tool-search').value||'').toLowerCase();
+  const cat=document.getElementById('ew-tool-cat').value;
+  // Show: available OR already in this WO
+  const tools=DB.get('tools').filter(t=>t.status!=='retired'&&(!q||t.name.toLowerCase().includes(q)||t.qrCode.toLowerCase().includes(q))&&(!cat||t.cat===cat));
+  const SL={available:'พร้อมใช้',borrowed:'ถูกยืม',repair:'ส่งซ่อม'};
+  const SC={available:'bs-ok',borrowed:'bs-borrow',repair:'bs-repair'};
+  document.getElementById('ew-tool-grid').innerHTML=tools.map(t=>{
+    const inC=ewToolCart.find(x=>x.id===t.id);
+    const isOriginal=ewOrigToolIds.includes(t.id); // already borrowed in this WO
+    const ok=t.status==='available'||isOriginal;
+    return `<div class="col-6 col-md-3 col-xl-2"><div class="item-card${inC?' sel':''}${!ok?' off':''}" onclick="${ok?`ewToggleTool(${t.id})`:''}">
+      ${t.img?`<img class="iimg" src="${t.img}">`:`<div class="iph"><i class="bi bi-tools"></i></div>`}
+      <div class="iinfo"><div class="iname">${t.name}</div><div class="isub">${t.cat||''}</div>
+        <span class="bs ${isOriginal&&inC?'bs-borrow':SC[t.status]||''}">${isOriginal&&inC?'อยู่ในใบงานนี้':SL[t.status]||t.status}</span>
+        <div style="font-size:.65rem;color:#94a3b8;margin-top:1px;">${t.qrCode}</div>
+      </div></div></div>`;
+  }).join('')||'<div class="col-12 text-center text-muted py-3">ไม่พบรายการ</div>';
+  ewUpdateCounts();
+}
+function ewToggleTool(id){
+  const t=DB.get('tools').find(x=>x.id===id);
+  const idx=ewToolCart.findIndex(x=>x.id===id);
+  const isOriginal=ewOrigToolIds.includes(id);
+  if(idx>=0){
+    if(isOriginal&&!confirm(`ลบ "${t.name}" ออกจากใบงาน? (สถานะจะถูกเปลี่ยนเป็นพร้อมใช้)`))return;
+    ewToolCart.splice(idx,1);
+  } else {
+    ewToolCart.push({id:t.id,name:t.name,qrCode:t.qrCode,status:'borrowed',retDt:null,condition:null,note:''});
+  }
+  ewFilterTool();
+}
+function saveEditWO(){
+  const id=parseInt(document.getElementById('ew-id').value);
+  const txs=DB.get('transactions');
+  const tx=txs.find(t=>t.id===id);if(!tx)return;
+  tx.jobName=document.getElementById('ew-job').value.trim();
+  tx.jobLocation=document.getElementById('ew-loc').value.trim();
+  tx.approver=document.getElementById('ew-apv').value.trim();
+  tx.borrowDatetime=document.getElementById('ew-bdt').value;
+  tx.returnDatetime=document.getElementById('ew-rdt').value;
+  tx.note=document.getElementById('ew-note').value;
+  // Members
+  const techs=DB.get('techs');
+  tx.memberIds=[];tx.memberNames=[];
+  document.querySelectorAll('#ew-members .chip.on').forEach(c=>{
+    const tid=parseInt(c.getAttribute('data-tid'));
+    tx.memberIds.push(tid);
+    const t=techs.find(x=>x.id===tid);
+    if(t)tx.memberNames.push(t.name);
+  });
+  // Mat items
+  tx.matItems=ewMatCart.map(c=>({materialId:c.id,name:c.name,qty:c.qty,unit:c.unit,returnedQty:c.returnedQty||0}));
+  // Tool items + update tool statuses
+  const newToolIds=ewToolCart.map(x=>x.id);
+  const tools=DB.get('tools');
+  // Release removed tools
+  ewOrigToolIds.filter(id=>!newToolIds.includes(id)).forEach(id=>{const t=tools.find(x=>x.id===id);if(t&&t.status==='borrowed')t.status='available';});
+  // Borrow newly added tools
+  newToolIds.filter(id=>!ewOrigToolIds.includes(id)).forEach(id=>{const t=tools.find(x=>x.id===id);if(t)t.status='borrowed';});
+  DB.set('tools',tools);
+  tx.toolItems=ewToolCart.map(c=>({toolId:c.id,toolName:c.name,qrCode:c.qrCode,status:c.status||'borrowed',retDt:c.retDt||null,condition:c.condition||null,note:c.note||''}));
+  DB.set('transactions',txs);
+  bootstrap.Modal.getInstance(document.getElementById('editWOModal')).hide();
+  loadOrders();loadDash();
+}
+</script>
+<script>
+// ====== RETURN TOOLS CHECKLIST ======
+function openRetToolModal(txId){
+  const tx=DB.get('transactions').find(t=>t.id===txId);
+  if(!tx||!tx.toolItems)return;
+  const borrowed=tx.toolItems.filter(it=>it.status==='borrowed');
+  if(!borrowed.length){alert('ไม่มีเครื่องมือที่ต้องคืน');return;}
+  document.getElementById('rtc-txid').value=txId;
+  document.getElementById('rtc-info').innerHTML=`<i class="bi bi-file-earmark-text me-1"></i><b>${tx.code}</b> — ${tx.jobName} | ${tx.teamName}`;
+  document.getElementById('rtc-dt').value=new Date().toISOString().slice(0,16);
+  // Build checklist rows
+  document.getElementById('rtc-rows').innerHTML=tx.toolItems.map((it,i)=>{
+    if(it.status!=='borrowed')return`<div class="rtc-row" style="opacity:.5;background:#f8fafc;">
+      <div class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i><span style="font-size:.85rem;">${it.toolName} <span class="text-muted" style="font-size:.75rem;">${it.qrCode}</span></span><span class="bs bs-ok ms-auto">คืนแล้ว</span></div></div>`;
+    return `<div class="rtc-row checked" id="rtcrow-${i}">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <input class="form-check-input" type="checkbox" id="rtc-chk-${i}" checked onchange="rtcRowToggle(${i})">
+        <label for="rtc-chk-${i}" style="font-size:.88rem;font-weight:600;cursor:pointer;">${it.toolName}</label>
+        <span class="text-muted ms-1" style="font-size:.75rem;">${it.qrCode}</span>
+      </div>
+      <div class="row g-2" id="rtcdet-${i}">
+        <div class="col-md-4"><label style="font-size:.75rem;">สภาพ</label><select class="form-select form-select-sm" id="rtc-cond-${i}"><option value="good">ปกติ / ดี</option><option value="damaged">ชำรุด/เสีย</option><option value="lost">สูญหาย</option></select></div>
+        <div class="col-md-8"><label style="font-size:.75rem;">หมายเหตุ</label><input type="text" class="form-control form-control-sm" id="rtc-note-${i}" placeholder="(ไม่บังคับ)"></div>
+      </div>
+    </div>`;
+  }).join('');
+  // Reset step
+  rtcBack();
+  new bootstrap.Modal(document.getElementById('retToolModal')).show();
+}
+
+function rtcRowToggle(i){
+  const chk=document.getElementById('rtc-chk-'+i);
+  const row=document.getElementById('rtcrow-'+i);
+  const det=document.getElementById('rtcdet-'+i);
+  if(chk.checked){row.classList.add('checked');det.style.display='';}
+  else{row.classList.remove('checked');det.style.display='none';}
+}
+
+function rtcShowSummary(){
+  const txId=parseInt(document.getElementById('rtc-txid').value);
+  const tx=DB.get('transactions').find(t=>t.id===txId);
+  const retDt=document.getElementById('rtc-dt').value;
+  const borrowed=tx.toolItems.filter(it=>it.status==='borrowed');
+  const toRet=[],toKeep=[];
+  borrowed.forEach((it,bi)=>{
+    const i=tx.toolItems.indexOf(it);
+    const chk=document.getElementById('rtc-chk-'+i);
+    if(chk&&chk.checked){
+      const cond=document.getElementById('rtc-cond-'+i)?.value||'good';
+      const note=document.getElementById('rtc-note-'+i)?.value||'';
+      toRet.push({idx:i,name:it.toolName,qrCode:it.qrCode,cond,note});
+    } else toKeep.push(it);
+  });
+  const condL={good:'ปกติ/ดี',damaged:'ชำรุด/เสีย',lost:'สูญหาย'};
+  document.getElementById('rtc-summary-content').innerHTML=`
+    <div class="mb-3">
+      <div style="font-size:.85rem;font-weight:700;color:#057a55;margin-bottom:6px;"><i class="bi bi-check-circle-fill me-1"></i>คืน ${toRet.length} รายการ</div>
+      ${toRet.map(r=>`<div class="d-flex justify-content-between align-items-center py-1 border-bottom" style="font-size:.82rem;">
+        <span><b>${r.name}</b> <span class="text-muted">${r.qrCode}</span></span>
+        <span class="bs ${r.cond==='good'?'bs-ok':r.cond==='damaged'?'bs-borrow':'bg-secondary text-white'}">${condL[r.cond]}</span>
+      </div>`).join('')||'<div class="text-muted" style="font-size:.82rem;">ไม่มีรายการที่เลือก</div>'}
+    </div>
+    ${toKeep.length?`<div><div style="font-size:.85rem;font-weight:700;color:#ef4444;margin-bottom:6px;"><i class="bi bi-clock-fill me-1"></i>ยังค้างอีก ${toKeep.length} รายการ</div>
+    ${toKeep.map(r=>`<div style="font-size:.82rem;padding:3px 0;border-bottom:1px solid #e2e8f0;"><b>${r.toolName}</b> <span class="text-muted">${r.qrCode}</span></div>`).join('')}</div>`:''}
+    <div class="mt-3 p-2 bg-light rounded" style="font-size:.78rem;color:#64748b;"><i class="bi bi-clock me-1"></i>วันเวลาคืน: <b>${retDt||'-'}</b></div>`;
+  // Store for confirm
+  document.getElementById('rtc-summary-content').dataset.retJson=JSON.stringify(toRet);
+  document.getElementById('rtc-step1').style.display='none';
+  document.getElementById('rtc-step2').style.display='block';
+  document.getElementById('rtc-check-btn').style.display='none';
+  document.getElementById('rtc-back-btn').style.display='';
+  document.getElementById('rtc-confirm-btn').style.display='';
+}
+function rtcBack(){
+  document.getElementById('rtc-step1').style.display='block';
+  document.getElementById('rtc-step2').style.display='none';
+  document.getElementById('rtc-check-btn').style.display='';
+  document.getElementById('rtc-back-btn').style.display='none';
+  document.getElementById('rtc-confirm-btn').style.display='none';
+}
+function doRetToolChecklist(){
+  const txId=parseInt(document.getElementById('rtc-txid').value);
+  const retDt=document.getElementById('rtc-dt').value;
+  const toRet=JSON.parse(document.getElementById('rtc-summary-content').dataset.retJson||'[]');
+  if(!toRet.length){alert('ไม่มีรายการที่เลือกคืน');return;}
+  const txs=DB.get('transactions');
+  const tx=txs.find(t=>t.id===txId);
+  const tools=DB.get('tools');
+  toRet.forEach(r=>{
+    const item=tx.toolItems[r.idx];
+    item.status='returned';item.retDt=retDt;item.condition=r.cond;item.note=r.note;
+    const tool=tools.find(t=>t.id===item.toolId);
+    if(tool)tool.status=r.cond==='damaged'?'repair':r.cond==='lost'?'retired':'available';
+  });
+  DB.set('tools',tools);
+  const allToolRet=tx.toolItems.every(it=>it.status==='returned');
+  const allMatRet=!tx.matItems||tx.matItems.every(it=>(it.qty-(it.returnedQty||0))<=0);
+  if(allToolRet&&allMatRet)tx.status='completed';
+  else if(allToolRet)tx.status='returned';
+  DB.set('transactions',txs);
+  bootstrap.Modal.getInstance(document.getElementById('retToolModal')).hide();
+  loadOrders();loadDash();
+}
+
+// ====== RETURN MATERIALS ======
+function openRetMat(txId){
+  const tx=DB.get('transactions').find(t=>t.id===txId);
+  if(!tx||!tx.matItems)return;
+  document.getElementById('rmat-txid').value=txId;
+  document.getElementById('rmat-info').innerHTML=`<b>${tx.code}</b> — ${tx.jobName} | ${tx.teamName} | ${tx.date}`;
+  document.getElementById('rmat-rows').innerHTML=tx.matItems.map((it,i)=>{
+    const net=it.qty-(it.returnedQty||0);
+    const used=net<=0;
+    return `<tr id="rmatrow-${i}">
+      <td style="font-size:.82rem;">${it.name}</td>
+      <td class="text-center">${it.qty} <small class="text-muted">${it.unit}</small></td>
+      <td class="text-center">${it.returnedQty||0}</td>
+      <td class="text-center ${net>0?'fw-bold text-danger':''}">${net}</td>
+      <td>${used?`<span class="text-muted" style="font-size:.78rem;">คืนครบแล้ว</span>`:`<input type="number" class="form-control form-control-sm" id="rm-${i}" value="0" min="0" max="${net}" style="width:80px;" oninput="rmClamp(${i},${net})">`}</td>
+      <td>${used?'':`<button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.72rem;" onclick="rmUsedAll(${i},${net})" title="ใช้หมดแล้ว ไม่มีคืน"><i class="bi bi-trash3 me-1"></i>ใช้หมด</button>`}</td>
+    </tr>`;
+  }).join('');
+  new bootstrap.Modal(document.getElementById('retMatModal')).show();
+}
+function rmClamp(i,max){const el=document.getElementById('rm-'+i);if(el){const v=parseFloat(el.value)||0;if(v>max)el.value=max;if(v<0)el.value=0;}}
+function rmUsedAll(i,net){
+  // Mark as fully accounted (used = no physical return)
+  const el=document.getElementById('rm-'+i);
+  if(el){el.value=0;el.disabled=true;}
+  const btn=document.querySelector(`#rmatrow-${i} button`);
+  if(btn){btn.textContent='ใช้หมดแล้ว ✓';btn.disabled=true;btn.className='btn btn-sm btn-success py-0 px-2';btn.style.fontSize='.72rem';}
+  document.getElementById('rmatrow-'+i).dataset.usedAll='1';
+}
+function doRetMat(){
+  const txId=parseInt(document.getElementById('rmat-txid').value);
+  const txs=DB.get('transactions');
+  const tx=txs.find(t=>t.id===txId);
+  tx.matItems.forEach((it,i)=>{
+    const row=document.getElementById('rmatrow-'+i);
+    if(row&&row.dataset.usedAll==='1'){
+      // Used all — mark as fully returned/consumed
+      it.returnedQty=it.qty;
+    } else {
+      const q=parseFloat(document.getElementById('rm-'+i)?.value)||0;
+      if(q>0)it.returnedQty=(it.returnedQty||0)+q;
+    }
+  });
+  const allMatRet=tx.matItems.every(it=>(it.qty-(it.returnedQty||0))<=0);
+  const allToolRet=!tx.toolItems||tx.toolItems.every(it=>it.status==='returned');
+  if(allMatRet&&allToolRet)tx.status='completed';
+  DB.set('transactions',txs);
+  bootstrap.Modal.getInstance(document.getElementById('retMatModal')).hide();
+  loadOrders();loadDash();
+}
+
+// ====== HISTORY PAGE ======
+function initHistFilters(){
+  const techs=DB.get('techs');
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('hist-from').value=today.slice(0,7)+'-01';
+  document.getElementById('hist-to').value=today;
+  document.getElementById('hist-tech').innerHTML='<option value="">ทุกช่าง</option>'+techs.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+}
+function loadHistory(){
+  const from=document.getElementById('hist-from').value;
+  const to=document.getElementById('hist-to').value;
+  const techId=parseInt(document.getElementById('hist-tech').value)||0;
+  const type=document.getElementById('hist-type').value;
+  const u=cu();
+  let txs=DB.get('transactions').filter(t=>{
+    if(from&&t.date<from)return false;
+    if(to&&t.date>to)return false;
+    if(techId&&!(t.memberIds||[]).includes(techId))return false;
+    if(type==='mat'&&!(t.matItems&&t.matItems.length))return false;
+    if(type==='tool'&&!(t.toolItems&&t.toolItems.length))return false;
+    if(u&&u.role==='tech'&&u.techId&&!(t.memberIds||[]).includes(u.techId))return false;
+    return true;
+  }).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+
+  const SL={active:'กำลังดำเนินการ',returned:'คืนแล้ว',completed:'เสร็จสิ้น'};
+  const SC={active:'bs-borrow',returned:'bs-ok',completed:'bs-done'};
+  const el=document.getElementById('hist-list');
+  if(!txs.length){el.innerHTML='<div class="text-center text-muted py-4">ไม่มีประวัติในช่วงนี้</div>';return;}
+  el.innerHTML=txs.map(tx=>`
+    <div class="tcard mb-2" onclick="openTxDetail(${tx.id})" style="cursor:pointer;" title="คลิกเพื่อดูรายละเอียด">
+      <div style="padding:10px 14px;">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <span class="fw-bold text-primary" style="font-size:.85rem;">${tx.code}</span>
+            <span class="ms-2 fw-bold">${tx.jobName}</span>
+            ${tx.closed?'<span class="bs bs-closed ms-2"><i class="bi bi-lock me-1"></i>ปิดแล้ว</span>':''}
+          </div>
+          <span class="bs ${SC[tx.status]||''}">${SL[tx.status]||tx.status}</span>
+        </div>
+        <div style="font-size:.78rem;color:#64748b;margin-top:4px;">
+          <i class="bi bi-people me-1"></i>${tx.teamName} &nbsp;|&nbsp;
+          <i class="bi bi-person me-1"></i>${(tx.memberNames||[]).join(', ')||'-'} &nbsp;|&nbsp;
+          <i class="bi bi-calendar me-1"></i>${tx.date}
+        </div>
+        <div class="row g-2 mt-1" style="font-size:.78rem;">
+          ${tx.matItems&&tx.matItems.length?`<div class="col-auto"><span class="badge bg-primary">${tx.matItems.length} วัสดุ</span></div>`:''}
+          ${tx.toolItems&&tx.toolItems.length?`<div class="col-auto"><span class="badge bg-success">${tx.toolItems.length} เครื่องมือ</span></div>`:''}
+          ${tx.toolItems&&tx.toolItems.length?`<div class="col-auto text-muted">คืนแล้ว ${tx.toolItems.filter(it=>it.status==='returned').length}/${tx.toolItems.length}</div>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+</script>
+<script>
+
+// ====== PENDING RETURNS PAGE ======
+function initPendingFilters(){
+  const teams=DB.get('teams'),techs=DB.get('techs');
+  const tSel=document.getElementById('pend-team');
+  const techSel=document.getElementById('pend-tech');
+  tSel.innerHTML='<option value="">ทุกทีม</option>'+teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  techSel.innerHTML='<option value="">ทุกช่าง</option>'+techs.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  loadPending();
+}
+function loadPending(){
+  const teamVal=document.getElementById('pend-team').value;
+  const techVal=document.getElementById('pend-tech').value;
+  const teamId=teamVal?parseInt(teamVal):0;
+  const techId=techVal?parseInt(techVal):0;
+  const txs=DB.get('transactions'),techs=DB.get('techs');
+  // Only WOs with at least one borrowed tool
+  let pendTxs=txs.filter(tx=>{
+    if(!(tx.toolItems||[]).some(i=>i.status==='borrowed'))return false;
+    if(teamId&&tx.teamId!==teamId)return false;
+    if(techId&&!(tx.memberIds||[]).includes(techId))return false;
+    return true;
+  });
+  // Stats
+  const totalTools=pendTxs.reduce((s,tx)=>s+(tx.toolItems||[]).filter(i=>i.status==='borrowed').length,0);
+  document.getElementById('pend-st-tools').textContent=totalTools;
+  document.getElementById('pend-st-wo').textContent=pendTxs.length;
+  // Per-tech breakdown
+  const techMap={};
+  pendTxs.forEach(tx=>{
+    const cnt=(tx.toolItems||[]).filter(i=>i.status==='borrowed').length;
+    (tx.memberIds||[]).forEach(id=>{
+      const tech=techs.find(t=>t.id===id);
+      if(!tech)return;
+      if(!techMap[id]){techMap[id]={name:tech.name,tools:0,wos:new Set()};}
+      techMap[id].tools+=cnt;
+      techMap[id].wos.add(tx.id);
+    });
+  });
+  const techArr=Object.values(techMap);
+  document.getElementById('pend-st-techs').textContent=techArr.length;
+  // Tech summary table
+  const tbody=document.getElementById('pend-tech-tbl');
+  if(!techArr.length){
+    tbody.innerHTML='<tr><td colspan="3" class="text-center text-muted py-3">ไม่มีรายการค้างคืน</td></tr>';
+  }else{
+    techArr.sort((a,b)=>b.tools-a.tools);
+    tbody.innerHTML=techArr.map(d=>`<tr>
+      <td><b>${d.name}</b></td>
+      <td class="text-center"><span class="badge bg-danger">${d.tools} รายการ</span></td>
+      <td class="text-center text-muted">${d.wos.size} ใบงาน</td>
+    </tr>`).join('');
+  }
+  // WO cards
+  const listEl=document.getElementById('pending-list');
+  if(!pendTxs.length){
+    listEl.innerHTML='<div class="text-center text-muted py-4"><i class="bi bi-check-circle" style="font-size:2rem;color:#d1fae5;"></i><div class="mt-2">ไม่มีใบงานที่ค้างส่งคืน</div></div>';
+    return;
+  }
+  pendTxs.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  listEl.innerHTML=pendTxs.map(tx=>{
+    const pendTools=(tx.toolItems||[]).filter(i=>i.status==='borrowed');
+    const toolList=pendTools.slice(0,3).map(i=>`<span class="badge bg-warning text-dark me-1">${i.toolName}</span>`).join('')+(pendTools.length>3?`<span class="text-muted" style="font-size:.75rem;">+${pendTools.length-3} อื่นๆ</span>`:'');
+    const members=(tx.memberNames||[]).join(', ');
+    return `<div class="border rounded p-3 mb-2" style="cursor:pointer;background:#fff;" onclick="openTxDetail(${tx.id})">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <span class="fw-bold" style="color:#1a56db;">${tx.code}</span>
+          <span class="mx-2 text-muted">|</span>
+          <span class="fw-semibold">${tx.jobName}</span>
+          ${tx.jobLocation?`<span class="text-muted ms-2" style="font-size:.8rem;"><i class="bi bi-geo-alt"></i>${tx.jobLocation}</span>`:''}
+        </div>
+        <span class="badge bg-danger">${pendTools.length} ค้างคืน</span>
+      </div>
+      <div class="mt-1" style="font-size:.82rem;color:#64748b;">
+        <i class="bi bi-people me-1"></i>${tx.teamName||''}${members?` — ${members}`:''}
+        <span class="ms-3"><i class="bi bi-calendar me-1"></i>${tx.date||''}</span>
+      </div>
+      <div class="mt-1">${toolList}</div>
+    </div>`;
+  }).join('');
+}
+// ====== CLAIM TOOL ======
+function openClaimModal(txId,toolIdx){
+  const tx=DB.get('transactions').find(t=>t.id===txId);
+  if(!tx)return;
+  const it=(tx.toolItems||[])[toolIdx];
+  if(!it||it.status!=='borrowed')return;
+  document.getElementById('clm-txid').value=txId;
+  document.getElementById('clm-toolidx').value=toolIdx;
+  document.getElementById('clm-tool-name').textContent=it.toolName;
+  document.getElementById('clm-tx-code').textContent=tx.code+' — '+tx.jobName;
+  document.getElementById('clm-note').value='';
+  document.getElementById('clm-lost').checked=true;
+  new bootstrap.Modal(document.getElementById('claimModal')).show();
+}
+function doClaimTool(){
+  const txId=parseInt(document.getElementById('clm-txid').value);
+  const toolIdx=parseInt(document.getElementById('clm-toolidx').value);
+  const clmType=document.querySelector('input[name="clm-type"]:checked').value;
+  const note=document.getElementById('clm-note').value.trim();
+  const txs=DB.get('transactions');
+  const tx=txs.find(t=>t.id===txId);
+  if(!tx)return;
+  const it=(tx.toolItems||[])[toolIdx];
+  if(!it)return;
+  // Mark tool item as claimed in transaction
+  it.status='claimed';
+  it.claimedAt=new Date().toISOString();
+  it.claimType=clmType;
+  it.claimNote=note;
+  // Remove tool from tools DB
+  let tools=DB.get('tools');
+  tools=tools.filter(t=>t.id!==it.toolId);
+  DB.set('tools',tools);
+  // Check if all tool items resolved → update tx status
+  const allDone=(tx.toolItems||[]).every(i=>i.status!=='borrowed');
+  const allMatDone=!(tx.matItems||[]).some(i=>(i.qty-(i.returnedQty||0))>0);
+  if(allDone&&allMatDone)tx.status='completed';
+  else if(allDone)tx.status='returned';
+  DB.set('transactions',txs);
+  // Save claim record
+  const claims=DB.get('claims')||[];
+  claims.push({id:Date.now(),date:new Date().toISOString().slice(0,10),txId,txCode:tx.code,jobName:tx.jobName,
+    toolId:it.toolId,toolName:it.toolName,qrCode:it.qrCode,
+    claimType:clmType,note,teamName:tx.teamName||'',memberNames:tx.memberNames||[],
+    processedBy:cu()?.username||''});
+  DB.set('claims',claims);
+  bootstrap.Modal.getInstance(document.getElementById('claimModal')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('txDetailModal'))?.hide();
+  loadDash();
+  if(document.getElementById('page-claim').classList.contains('active'))loadClaimPage();
+  alert('เคลมเครื่องมือเรียบร้อยแล้ว เครื่องมือ "'+it.toolName+'" ถูกลบออกจากระบบแล้ว');
+}
+function loadClaimPage(){
+  const claims=(DB.get('claims')||[]);
+  const from=document.getElementById('clm-from')?.value||'';
+  const to=document.getElementById('clm-to')?.value||'';
+  const q=(document.getElementById('clm-srch')?.value||'').toLowerCase();
+  const TL={lost:'สูญหาย',broken:'พังซ่อมไม่ได้'};
+  let list=[...claims].sort((a,b)=>b.date.localeCompare(a.date));
+  if(from)list=list.filter(c=>c.date>=from);
+  if(to)list=list.filter(c=>c.date<=to);
+  if(q)list=list.filter(c=>(c.toolName+c.txCode+c.jobName).toLowerCase().includes(q));
+  const tbody=document.getElementById('clm-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="7" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';return;}
+  tbody.innerHTML=list.map(c=>`<tr>
+    <td style="white-space:nowrap;">${c.date}</td>
+    <td><small class="fw-bold text-primary">${c.txCode}</small><br><small class="text-muted">${c.jobName||''}</small></td>
+    <td><b>${c.toolName}</b><br><small class="text-muted">${c.qrCode||''}</small></td>
+    <td><span class="badge ${c.claimType==='lost'?'bg-secondary':'bg-danger'}">${TL[c.claimType]||c.claimType}</span></td>
+    <td style="font-size:.78rem;">${c.teamName||''}<br>${(c.memberNames||[]).join(', ')}</td>
+    <td style="font-size:.78rem;">${c.note||'-'}</td>
+    <td style="font-size:.78rem;">${c.processedBy||'-'}</td>
+  </tr>`).join('');
+}
+// ====== QR SCAN PAGE ======
+function scanQR(){
+  const code=document.getElementById('scan-input').value.trim();
+  if(!code)return;
+  const tools=DB.get('tools');
+  const tool=tools.find(t=>t.qrCode===code||String(t.id)===code);
+  const res=document.getElementById('scan-result');
+  if(!tool){res.innerHTML=`<div class="alert alert-warning"><i class="bi bi-exclamation-circle me-2"></i>ไม่พบเครื่องมือ: <b>${code}</b></div>`;return;}
+  const SL={available:'พร้อมใช้',borrowed:'ถูกยืม',repair:'ส่งซ่อม',retired:'เลิกใช้'};
+  const SC={available:'success',borrowed:'danger',repair:'warning'};
+  const activeTx=DB.get('transactions').find(t=>t.toolItems&&t.toolItems.some(it=>it.toolId===tool.id&&it.status==='borrowed'));
+  res.innerHTML=`<div class="fsec"><div class="d-flex gap-3 align-items-start mb-3">
+    ${tool.img?`<img src="${tool.img}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;">`:`<div style="width:80px;height:80px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:#94a3b8;"><i class="bi bi-tools"></i></div>`}
+    <div>
+      <h6 class="fw-bold mb-1">${tool.name}</h6>
+      <div style="color:#64748b;font-size:.82rem;">${tool.cat||''} · ${tool.qrCode}</div>
+      <span class="badge bg-${SC[tool.status]||'secondary'} mt-1">${SL[tool.status]||tool.status}</span>
+      ${activeTx?`<div style="font-size:.78rem;margin-top:4px;color:#1a56db;"><i class="bi bi-person me-1"></i>ยืมโดย: ${activeTx.memberNames?activeTx.memberNames.join(', '):'-'} | ${activeTx.jobName}</div>`:''}
+    </div></div>
+    <table class="table table-sm table-bordered mb-0" style="font-size:.8rem;">
+      <tr><th>ที่เก็บ</th><td>${tool.location||'-'}</td><th>วันซื้อ</th><td>${tool.buyDate||'-'}</td></tr>
+      <tr><th>ราคา</th><td>${tool.price?tool.price.toLocaleString()+' บาท':'-'}</td><th>ผู้จัดจำหน่าย</th><td>${tool.supplier||'-'}</td></tr>
+    </table></div>`;
+  document.getElementById('scan-input').value='';
+}
+
+// ====== MANAGE MATERIALS ======
+function renderMatTbl(){
+  const q=(document.getElementById('mat-srch')?.value||'').toLowerCase();
+  const mats=DB.get('materials').filter(m=>!q||m.name.toLowerCase().includes(q));
+  document.getElementById('m-cat-dl').innerHTML=[...new Set(DB.get('materials').map(m=>m.cat).filter(Boolean))].map(c=>`<option value="${c}">`).join('');
+  document.getElementById('mat-tbl').innerHTML=mats.length?mats.map(m=>`
+    <tr>
+      <td>${m.img?`<img src="${m.img}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;">`:'<i class="bi bi-image text-secondary"></i>'}</td>
+      <td><b>${m.name}</b>${m.desc?`<br><small class="text-muted">${m.desc}</small>`:''}</td>
+      <td>${m.cat||'-'}</td><td>${m.unit||'-'}</td><td>${m.location||'-'}</td>
+      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openMatModal(${m.id})"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delMat(${m.id})"><i class="bi bi-trash"></i></button></td>
+    </tr>`).join(''):'<tr><td colspan="6" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';
+}
+function openMatModal(id){
+  document.getElementById('m-id').value=id||'';
+  document.getElementById('matMT').textContent=id?'แก้ไขวัสดุ':'เพิ่มวัสดุ';
+  ['m-name','m-cat','m-unit','m-loc','m-sup','m-desc'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('mat-idata').value='';document.getElementById('mat-iprev').innerHTML='<i class="bi bi-image"></i>';
+  if(id){const m=DB.get('materials').find(x=>x.id===id);if(m){
+    document.getElementById('m-name').value=m.name||'';document.getElementById('m-cat').value=m.cat||'';
+    document.getElementById('m-unit').value=m.unit||'';document.getElementById('m-loc').value=m.location||'';
+    document.getElementById('m-sup').value=m.supplier||'';document.getElementById('m-desc').value=m.desc||'';
+    if(m.img){document.getElementById('mat-idata').value=m.img;document.getElementById('mat-iprev').innerHTML=`<img src="${m.img}" style="width:100%;height:100%;object-fit:cover;">`;}
+  }}
+  new bootstrap.Modal(document.getElementById('matModal')).show();
+}
+function saveMat(){
+  const name=document.getElementById('m-name').value.trim();if(!name){alert('กรุณาระบุชื่อวัสดุ');return;}
+  const mats=DB.get('materials');const id=document.getElementById('m-id').value;
+  const obj={name,cat:document.getElementById('m-cat').value.trim(),unit:document.getElementById('m-unit').value.trim(),location:document.getElementById('m-loc').value.trim(),supplier:document.getElementById('m-sup').value.trim(),desc:document.getElementById('m-desc').value.trim(),img:document.getElementById('mat-idata').value};
+  if(id){const i=mats.findIndex(m=>m.id==id);if(i>=0)mats[i]={...mats[i],...obj};}
+  else{obj.id=DB.nextId('materials');mats.push(obj);}
+  DB.set('materials',mats);bootstrap.Modal.getInstance(document.getElementById('matModal')).hide();renderMatTbl();
+}
+function delMat(id){if(!confirm('ลบวัสดุนี้?'))return;DB.set('materials',DB.get('materials').filter(m=>m.id!==id));renderMatTbl();}
+
+// ====== MANAGE TOOLS ======
+let rprRows=[];
+function renderToolTbl(){
+  const q=(document.getElementById('tool-srch')?.value||'').toLowerCase();
+  const tools=DB.get('tools').filter(t=>!q||t.name.toLowerCase().includes(q)||t.qrCode.toLowerCase().includes(q));
+  document.getElementById('t-cat-dl').innerHTML=[...new Set(DB.get('tools').map(t=>t.cat).filter(Boolean))].map(c=>`<option value="${c}">`).join('');
+  const SL={available:'พร้อมใช้',borrowed:'ถูกยืม',repair:'ส่งซ่อม',retired:'เลิกใช้'};
+  const SC={available:'bs-ok',borrowed:'bs-borrow',repair:'bs-repair',retired:'bs-done'};
+  document.getElementById('tool-tbl').innerHTML=tools.length?tools.map(t=>`
+    <tr>
+      <td>${t.img?`<img src="${t.img}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;">`:'<i class="bi bi-tools text-secondary"></i>'}</td>
+      <td><small class="text-muted">${t.qrCode}</small></td>
+      <td><b>${t.name}</b></td><td>${t.cat||'-'}</td>
+      <td><span class="bs ${SC[t.status]||''}">${SL[t.status]||t.status}</span></td>
+      <td class="text-center">${t.isFocus?'<i class="bi bi-star-fill text-warning"></i>':'<i class="bi bi-star text-secondary"></i>'}</td>
+      <td style="font-size:.78rem;">${t.buyDate||'-'}</td>
+      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openToolModal(${t.id})"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delTool(${t.id})"><i class="bi bi-trash"></i></button></td>
+    </tr>`).join(''):'<tr><td colspan="8" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';
+}
+function openToolModal(id){
+  rprRows=[];
+  document.getElementById('t-id').value=id||'';
+  document.getElementById('toolMT').textContent=id?'แก้ไขเครื่องมือ':'เพิ่มเครื่องมือ';
+  ['t-name','t-cat','t-buy','t-price','t-sup','t-loc','t-life','t-desc'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('t-status').value='available';document.getElementById('t-focus').checked=false;
+  document.getElementById('tool-idata').value='';document.getElementById('tool-iprev').innerHTML='<i class="bi bi-tools"></i>';
+  document.getElementById('tool-qrprev').innerHTML='';
+  if(id){const t=DB.get('tools').find(x=>x.id===id);if(t){
+    document.getElementById('t-name').value=t.name||'';document.getElementById('t-cat').value=t.cat||'';
+    document.getElementById('t-buy').value=t.buyDate||'';document.getElementById('t-price').value=t.price||'';
+    document.getElementById('t-sup').value=t.supplier||'';document.getElementById('t-loc').value=t.location||'';
+    document.getElementById('t-life').value=t.lifespan||'';document.getElementById('t-desc').value=t.desc||'';
+    document.getElementById('t-status').value=t.status||'available';document.getElementById('t-focus').checked=!!t.isFocus;
+    document.getElementById('tool-idata').value=t.img||'';
+    if(t.img)document.getElementById('tool-iprev').innerHTML=`<img src="${t.img}" style="width:100%;height:100%;object-fit:cover;">`;
+    rprRows=JSON.parse(JSON.stringify(t.repairs||[]));
+    setTimeout(()=>genQR('tool-qrprev',t.qrCode,90),200);
+  }}
+  renderRpr();swToolTab('i',document.querySelector('#tool-mtabs .nav-link'));
+  new bootstrap.Modal(document.getElementById('toolModal')).show();
+}
+function saveTool(){
+  const name=document.getElementById('t-name').value.trim();if(!name){alert('กรุณาระบุชื่อ');return;}
+  const tools=DB.get('tools');const id=document.getElementById('t-id').value;
+  let qrCode=id?tools.find(t=>t.id==id)?.qrCode:'';
+  if(!qrCode){const n=DB.nextId('tool_qr');qrCode='TL-'+String(n).padStart(3,'0');}
+  const obj={name,cat:document.getElementById('t-cat').value.trim(),qrCode,status:document.getElementById('t-status').value,buyDate:document.getElementById('t-buy').value,price:parseFloat(document.getElementById('t-price').value)||0,supplier:document.getElementById('t-sup').value.trim(),location:document.getElementById('t-loc').value.trim(),lifespan:parseInt(document.getElementById('t-life').value)||0,isFocus:document.getElementById('t-focus').checked,desc:document.getElementById('t-desc').value.trim(),img:document.getElementById('tool-idata').value,repairs:rprRows};
+  if(id){const i=tools.findIndex(t=>t.id==id);if(i>=0)tools[i]={...tools[i],...obj};}
+  else{obj.id=DB.nextId('tools');tools.push(obj);}
+  DB.set('tools',tools);bootstrap.Modal.getInstance(document.getElementById('toolModal')).hide();renderToolTbl();
+}
+function delTool(id){if(!confirm('ลบเครื่องมือนี้?'))return;DB.set('tools',DB.get('tools').filter(t=>t.id!==id));renderToolTbl();}
+function renderRpr(){
+  document.getElementById('rpr-body').innerHTML=rprRows.length?rprRows.map((r,i)=>`
+    <tr><td><input type="date" class="form-control form-control-sm" value="${r.date||''}" onchange="rprRows[${i}].date=this.value"></td>
+    <td><input type="text" class="form-control form-control-sm" value="${r.desc||''}" onchange="rprRows[${i}].desc=this.value"></td>
+    <td><input type="number" class="form-control form-control-sm" value="${r.cost||0}" style="width:80px;" onchange="rprRows[${i}].cost=+this.value"></td>
+    <td><input type="text" class="form-control form-control-sm" value="${r.by||''}" onchange="rprRows[${i}].by=this.value"></td>
+    <td><button class="btn btn-sm btn-outline-danger" onclick="rprRows.splice(${i},1);renderRpr()"><i class="bi bi-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="5" class="text-center text-muted">ไม่มีประวัติ</td></tr>';
+}
+function addRpr(){rprRows.push({date:new Date().toISOString().slice(0,10),desc:'',cost:0,by:''});renderRpr();}
+function swToolTab(tab,el){
+  document.getElementById('tt-i').style.display=tab==='i'?'block':'none';
+  document.getElementById('tt-r').style.display=tab==='r'?'block':'none';
+  document.querySelectorAll('#tool-mtabs .nav-link').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+</script>
+<script>
+// ====== TECH / TEAM / USER ======
+function swTechTab(tab,el){
+  ['tab-t','tab-tm','tab-usr'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('tab-'+tab).style.display='block';
+  document.querySelectorAll('#tech-tabs .nav-link').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(tab==='t')renderTechTbl();
+  else if(tab==='tm')renderTeamTbl();
+  else renderUserTbl();
+}
+// TECH
+function renderTechTbl(q=''){
+  const techs=DB.get('techs').filter(t=>!q||t.name.toLowerCase().includes(q.toLowerCase())||t.empId?.toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('tech-tbl').innerHTML=techs.length?techs.map(t=>`
+    <tr>
+      <td>${t.img?`<img src="${t.img}" style="width:32px;height:32px;object-fit:cover;border-radius:50%;">`:'<i class="bi bi-person-circle fs-4 text-secondary"></i>'}</td>
+      <td>${t.empId||'-'}</td><td><b>${t.name}</b></td><td>${t.pos||'-'}</td><td>${t.phone||'-'}</td>
+      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openTechModal(${t.id})"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delTech(${t.id})"><i class="bi bi-trash"></i></button></td>
+    </tr>`).join(''):'<tr><td colspan="6" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';
+}
+function openTechModal(id){
+  document.getElementById('tc-id').value=id||'';document.getElementById('techMT').textContent=id?'แก้ไขช่าง':'เพิ่มช่าง';
+  ['tc-emp','tc-name','tc-pos','tc-phone'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('tech-idata').value='';document.getElementById('tech-iprev').innerHTML='<i class="bi bi-person-circle"></i>';
+  if(id){const t=DB.get('techs').find(x=>x.id===id);if(t){
+    document.getElementById('tc-emp').value=t.empId||'';document.getElementById('tc-name').value=t.name||'';
+    document.getElementById('tc-pos').value=t.pos||'';document.getElementById('tc-phone').value=t.phone||'';
+    document.getElementById('tech-idata').value=t.img||'';
+    if(t.img)document.getElementById('tech-iprev').innerHTML=`<img src="${t.img}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  }}
+  new bootstrap.Modal(document.getElementById('techModal')).show();
+}
+function saveTech(){
+  const name=document.getElementById('tc-name').value.trim();if(!name){alert('กรุณาระบุชื่อ');return;}
+  const techs=DB.get('techs');const id=document.getElementById('tc-id').value;
+  const obj={name,empId:document.getElementById('tc-emp').value.trim(),pos:document.getElementById('tc-pos').value.trim(),phone:document.getElementById('tc-phone').value.trim(),img:document.getElementById('tech-idata').value,repairs:[]};
+  if(id){const i=techs.findIndex(t=>t.id==id);if(i>=0)techs[i]={...techs[i],...obj};}
+  else{obj.id=DB.nextId('techs');techs.push(obj);}
+  DB.set('techs',techs);bootstrap.Modal.getInstance(document.getElementById('techModal')).hide();renderTechTbl();
+}
+function delTech(id){if(!confirm('ลบช่างนี้?'))return;DB.set('techs',DB.get('techs').filter(t=>t.id!==id));renderTechTbl();}
+
+// TEAM
+function renderTeamTbl(){
+  const teams=DB.get('teams'),techs=DB.get('techs');
+  document.getElementById('team-tbl').innerHTML=teams.length?teams.map(tm=>`
+    <tr>
+      <td><b>${tm.name}</b></td><td>${tm.desc||'-'}</td>
+      <td style="font-size:.8rem;">${(tm.memberNames||[]).join(', ')||'(ยังไม่มีสมาชิก)'}</td>
+      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openTeamModal(${tm.id})"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delTeam(${tm.id})"><i class="bi bi-trash"></i></button></td>
+    </tr>`).join(''):'<tr><td colspan="4" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';
+}
+function openTeamModal(id){
+  document.getElementById('tm-id').value=id||'';document.getElementById('teamMT').textContent=id?'แก้ไขทีม':'เพิ่มทีม';
+  document.getElementById('tm-name').value='';document.getElementById('tm-desc').value='';
+  let selIds=[];
+  if(id){const tm=DB.get('teams').find(x=>x.id===id);if(tm){document.getElementById('tm-name').value=tm.name||'';document.getElementById('tm-desc').value=tm.desc||'';selIds=tm.memberIds||[];}}
+  const techs=DB.get('techs');
+  // Techs already in OTHER teams (not selectable)
+  const otherMemberIds=new Set();
+  DB.get('teams').filter(t=>t.id!=id).forEach(t=>(t.memberIds||[]).forEach(mid=>otherMemberIds.add(mid)));
+  // Show only: techs NOT in other teams, OR already in THIS team
+  const availTechs=techs.filter(t=>!otherMemberIds.has(t.id)||selIds.includes(t.id));
+  document.getElementById('tm-members').innerHTML=availTechs.length?availTechs.map(t=>`
+    <div class="form-check form-check-inline mb-1">
+      <input class="form-check-input" type="checkbox" id="tmm-${t.id}" value="${t.id}" ${selIds.includes(t.id)?'checked':''}>
+      <label class="form-check-label" for="tmm-${t.id}" style="font-size:.82rem;">${t.name} <span class="text-muted" style="font-size:.72rem;">(${t.empId||'-'})</span></label>
+    </div>`).join(''):'<span class="text-muted" style="font-size:.8rem;">ไม่มีช่างที่ว่าง (ช่างทุกคนอยู่ในทีมอื่นแล้ว)</span>';
+  new bootstrap.Modal(document.getElementById('teamModal')).show();
+}
+function saveTeam(){
+  const name=document.getElementById('tm-name').value.trim();if(!name){alert('กรุณาระบุชื่อทีม');return;}
+  const memberIds=[...document.querySelectorAll('#tm-members input:checked')].map(c=>parseInt(c.value));
+  const techs=DB.get('techs');
+  const memberNames=memberIds.map(id=>techs.find(t=>t.id===id)?.name||'').filter(Boolean);
+  const teams=DB.get('teams');const id=document.getElementById('tm-id').value;
+  const obj={name,desc:document.getElementById('tm-desc').value.trim(),memberIds,memberNames};
+  if(id){const i=teams.findIndex(t=>t.id==id);if(i>=0)teams[i]={...teams[i],...obj};}
+  else{obj.id=DB.nextId('teams');teams.push(obj);}
+  DB.set('teams',teams);bootstrap.Modal.getInstance(document.getElementById('teamModal')).hide();renderTeamTbl();
+}
+function delTeam(id){if(!confirm('ลบทีมนี้?'))return;DB.set('teams',DB.get('teams').filter(t=>t.id!==id));renderTeamTbl();}
+
+// USERS
+function renderUserTbl(){
+  const users=DB.get('users'),techs=DB.get('techs');
+  const RL={admin:'Admin',planning:'ฝ่ายแผนงาน',tech:'ช่าง'};
+  document.getElementById('user-tbl').innerHTML=users.length?users.map(u=>`
+    <tr>
+      <td><b>${u.username}</b></td><td>${u.name||'-'}</td>
+      <td><span class="badge ${u.role==='admin'?'bg-danger':u.role==='planning'?'bg-primary':'bg-secondary'}">${RL[u.role]||u.role}</span></td>
+      <td>${u.techId?techs.find(t=>t.id===u.techId)?.name||'-':'-'}</td>
+      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openUserModal('${u.username}')"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delUser('${u.username}')"><i class="bi bi-trash"></i></button></td>
+    </tr>`).join(''):'<tr><td colspan="5" class="text-center text-muted py-3">ไม่มีข้อมูล</td></tr>';
+}
+function toggleTechSel(){const r=document.getElementById('u-role').value;document.getElementById('u-techrow').style.display=r==='tech'?'':'none';}
+function openUserModal(username){
+  document.getElementById('u-orig').value=username||'';document.getElementById('userMT').textContent=username?'แก้ไขผู้ใช้':'เพิ่มผู้ใช้';
+  ['u-uname','u-pass','u-name'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('u-role').value='tech';
+  const techs=DB.get('techs');
+  document.getElementById('u-techsel').innerHTML='<option value="">-- ไม่ระบุ --</option>'+techs.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  if(username){const u=DB.get('users').find(x=>x.username===username);if(u){
+    document.getElementById('u-uname').value=u.username;document.getElementById('u-name').value=u.name||'';
+    document.getElementById('u-role').value=u.role;if(u.techId)document.getElementById('u-techsel').value=u.techId;
+  }}
+  toggleTechSel();new bootstrap.Modal(document.getElementById('userModal')).show();
+}
+function saveUser(){
+  const uname=document.getElementById('u-uname').value.trim();if(!uname){alert('กรุณาระบุ username');return;}
+  const pass=document.getElementById('u-pass').value;
+  const orig=document.getElementById('u-orig').value;
+  const users=DB.get('users');
+  if(!orig&&users.find(u=>u.username===uname)){alert('username นี้มีอยู่แล้ว');return;}
+  if(!orig&&!pass){alert('กรุณาระบุรหัสผ่าน');return;}
+  const role=document.getElementById('u-role').value;
+  const techId=role==='tech'?parseInt(document.getElementById('u-techsel').value)||null:null;
+  const obj={username:uname,name:document.getElementById('u-name').value.trim(),role,techId};
+  if(pass)obj.password=pass;
+  if(orig){const i=users.findIndex(u=>u.username===orig);if(i>=0){obj.password=obj.password||users[i].password;users[i]={...users[i],...obj};}}
+  else users.push(obj);
+  DB.set('users',users);bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();renderUserTbl();
+}
+function delUser(username){
+  if(username===cu()?.username){alert('ไม่สามารถลบตัวเองได้');return;}
+  if(!confirm('ลบผู้ใช้นี้?'))return;
+  DB.set('users',DB.get('users').filter(u=>u.username!==username));renderUserTbl();
+}
+
+// ====== QR CODES PAGE ======
+function genQR(containerId,text,size){
+  const el=document.getElementById(containerId);if(!el||!text)return;
+  el.innerHTML='';
+  try{new QRCode(el,{text,width:size||120,height:size||120,correctLevel:QRCode.CorrectLevel.M});}
+  catch(e){el.innerHTML=`<span style="font-size:.7rem;">${text}</span>`;}
+}
+function renderQRPg(){
+  const q=(document.getElementById('qr-srch')?.value||'').toLowerCase();
+  const filtered=DB.get('tools').filter(t=>!q||t.name.toLowerCase().includes(q)||t.qrCode.toLowerCase().includes(q));
+  const grid=document.getElementById('qr-grid');grid.innerHTML='';
+  filtered.forEach(t=>{
+    const col=document.createElement('div');col.className='col-6 col-sm-4 col-md-3 col-xl-2';
+    col.innerHTML=`<div class="fsec text-center p-2">
+      <div id="qrd-${t.id}" style="display:flex;justify-content:center;"></div>
+      <div style="font-size:.75rem;font-weight:600;margin-top:6px;">${t.name}</div>
+      <div style="font-size:.7rem;color:#64748b;">${t.qrCode}</div>
+      <button class="btn btn-outline-secondary btn-sm mt-1" style="font-size:.7rem;" onclick="printQR(${t.id})"><i class="bi bi-printer me-1"></i>พิมพ์</button>
+    </div>`;
+    grid.appendChild(col);
+    setTimeout(()=>genQR('qrd-'+t.id,t.qrCode,110),50);
+  });
+  if(!filtered.length)grid.innerHTML='<div class="col-12 text-center text-muted py-4">ไม่พบเครื่องมือ</div>';
+}
+function printQR(toolId){
+  const t=DB.get('tools').find(x=>x.id===toolId);if(!t)return;
+  const win=window.open('','_blank','width=300,height=350');
+  win.document.write(`<html><head><title>QR: ${t.name}</title><style>body{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;}</style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script></head>
+  <body><div id="qr"></div><div style="font-size:14px;font-weight:600;margin-top:8px;">${t.name}</div><div style="font-size:11px;color:#666;">${t.qrCode}</div>
+  <script>new QRCode(document.getElementById('qr'),{text:'${t.qrCode}',width:180,height:180});setTimeout(()=>{window.print();window.close();},600);<\/script></body></html>`);
+  win.document.close();
+}
+
+// ====== PRINT ======
+function openPrintModal(tx){
+  if(!tx)return;
+  const matHTML=tx.matItems&&tx.matItems.length?`<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#1e3a5f;color:#fff;"><th style="padding:4px 6px;">#</th><th style="padding:4px 6px;">วัสดุ</th><th style="padding:4px 6px;text-align:center;">จำนวน</th><th style="padding:4px 6px;text-align:center;">หน่วย</th><th style="padding:4px 6px;text-align:center;">คืนแล้ว</th></tr></thead><tbody>${tx.matItems.map((it,i)=>`<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3px 6px;">${i+1}</td><td style="padding:3px 6px;">${it.name}</td><td style="padding:3px 6px;text-align:center;">${it.qty}</td><td style="padding:3px 6px;text-align:center;">${it.unit||'-'}</td><td style="padding:3px 6px;text-align:center;">${it.returnedQty||0}</td></tr>`).join('')}</tbody></table>`:'<div style="color:#94a3b8;font-size:11px;padding:8px;">ไม่มีรายการวัสดุ</div>';
+  const toolHTML=tx.toolItems&&tx.toolItems.length?`<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#1e3a5f;color:#fff;"><th style="padding:4px 6px;">#</th><th style="padding:4px 6px;">เครื่องมือ</th><th style="padding:4px 6px;">QR</th><th style="padding:4px 6px;text-align:center;">สถานะ</th></tr></thead><tbody>${tx.toolItems.map((it,i)=>`<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3px 6px;">${i+1}</td><td style="padding:3px 6px;">${it.toolName}</td><td style="padding:3px 6px;font-size:10px;">${it.qrCode}</td><td style="padding:3px 6px;text-align:center;">${it.status==='returned'?'คืนแล้ว':'ยังไม่คืน'}</td></tr>`).join('')}</tbody></table>`:'<div style="color:#94a3b8;font-size:11px;padding:8px;">ไม่มีรายการเครื่องมือ</div>';
+  const SL={active:'กำลังใช้งาน',returned:'คืนแล้ว',completed:'เสร็จสิ้น'};
+  document.getElementById('pm-body').innerHTML=`<div id="print-sheet" style="width:794px;min-height:1000px;background:#fff;padding:28px;font-family:'Segoe UI',sans-serif;box-sizing:border-box;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;border-bottom:3px solid #1e3a5f;padding-bottom:10px;">
+      <div><div style="font-size:17px;font-weight:700;color:#1e3a5f;">ใบรายการเบิกวัสดุและเครื่องมือ</div><div style="font-size:11px;color:#64748b;">Factory Requisition & Tool Order</div></div>
+      <div style="text-align:right;"><div style="font-size:14px;font-weight:700;color:#1e3a5f;">${tx.code}</div><div style="font-size:11px;color:#64748b;">${tx.date}</div><span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px;font-size:10px;">${SL[tx.status]||tx.status}</span></div>
+    </div>
+    <table style="width:100%;font-size:11px;margin-bottom:14px;"><tr><td style="padding:2px 0;width:50%;"><b>ชื่องาน:</b> ${tx.jobName||'-'}</td><td><b>สถานที่:</b> ${tx.jobLocation||'-'}</td></tr>
+    <tr><td><b>ทีม:</b> ${tx.teamName||'-'}</td><td><b>ผู้อนุมัติ:</b> ${tx.approver||'-'}</td></tr>
+    <tr><td><b>ช่าง:</b> ${(tx.memberNames||[]).join(', ')||'-'}</td><td><b>วันเวลายืม:</b> ${tx.borrowDatetime||'-'}</td></tr>
+    ${tx.note?`<tr><td colspan="2"><b>หมายเหตุ:</b> ${tx.note}</td></tr>`:''}</table>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+      <div><div style="font-size:12px;font-weight:700;color:#1e3a5f;margin-bottom:5px;border-left:3px solid #1e3a5f;padding-left:6px;">วัสดุอุปกรณ์</div>${matHTML}</div>
+      <div><div style="font-size:12px;font-weight:700;color:#1e3a5f;margin-bottom:5px;border-left:3px solid #1e3a5f;padding-left:6px;">เครื่องมือช่าง</div>${toolHTML}</div>
+    </div>
+    <div style="margin-top:36px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;font-size:11px;">
+      <div style="text-align:center;border-top:1px solid #94a3b8;padding-top:6px;">ผู้เบิก<br><br></div>
+      <div style="text-align:center;border-top:1px solid #94a3b8;padding-top:6px;">ผู้อนุมัติ<br><br></div>
+      <div style="text-align:center;border-top:1px solid #94a3b8;padding-top:6px;">ผู้จ่ายวัสดุ<br><br></div>
+    </div>
+  </div>`;
+  document.getElementById('pm-txid').value=tx.id;
+  new bootstrap.Modal(document.getElementById('printModal')).show();
+}
+function doPrint(){
+  const el=document.getElementById('print-sheet');if(!el)return;
+  const win=window.open('','_blank');
+  win.document.write(`<html><head><title>พิมพ์ใบงาน</title><style>@page{size:A4;margin:0;}body{margin:0;}</style></head><body>${el.outerHTML}<script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500);}<\/script></body></html>`);
+  win.document.close();
+}
+function saveJPEG(){
+  const el=document.getElementById('print-sheet');if(!el){alert('ไม่พบเนื้อหา');return;}
+  const btn=document.querySelector('#printModal .btn-outline-success');
+  if(btn){btn.disabled=true;btn.textContent='กำลังสร้างรูป...';}
+  html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#ffffff'}).then(canvas=>{
+    const a=document.createElement('a');a.href=canvas.toDataURL('image/jpeg',.95);
+    a.download='work-order-'+document.getElementById('pm-txid').value+'.jpg';a.click();
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="bi bi-image me-1"></i>บันทึก JPEG';}
+  }).catch(e=>{alert('เกิดข้อผิดพลาด: '+e.message);if(btn){btn.disabled=false;btn.innerHTML='<i class="bi bi-image me-1"></i>บันทึก JPEG';}});
+}
+function prvImg(input,prevId,dataId){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById(dataId).value=e.target.result;
+    const prev=document.getElementById(prevId);
+    if(prev)prev.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:${prevId==='tech-iprev'?'50%':'8px'};">`;
+  };reader.readAsDataURL(file);
+}
+
+// ====== INIT ======
+document.addEventListener('DOMContentLoaded',()=>{
+  initDemo();
+  const u=JSON.parse(localStorage.getItem('v3_user')||'null');
+  if(u&&u.username){startApp();return;}
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('app').style.display='none';
+  const scanInput=document.getElementById('scan-input');
+  if(scanInput)scanInput.addEventListener('keydown',e=>{if(e.key==='Enter')scanQR();});
+  const qrInput=document.getElementById('wo-qr-input');
+  if(qrInput)qrInput.addEventListener('keydown',e=>{if(e.key==='Enter')woAddByQRText();});
+});
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(r=>console.log('SW registered',r.scope))
+      .catch(e=>console.log('SW error',e));
+  });
+}
+</script>
+</body>
+</html>
