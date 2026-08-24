@@ -1155,16 +1155,23 @@ function updateWOCounts(){
   document.getElementById('wo-tool-sel').textContent=woToolCart.length;
 }
 // QR live camera scan in work order
-let woCamStream=null,woCamAnimId=null;
+let woCamStream=null,woCamAnimId=null,woCamReady=false;
 async function woStartCam(){
   if(!navigator.mediaDevices?.getUserMedia){alert('เบราว์เซอร์นี้ไม่รองรับกล้อง กรุณาพิมพ์รหัส QR แทน');return;}
+  woStopCam(); // ensure clean state
   try{
     woCamStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
     const v=document.getElementById('wo-cam-video');
     v.srcObject=woCamStream;
-    v.onloadedmetadata=()=>{v.play();woCamAnimId=requestAnimationFrame(woCamFrame);};
+    woCamReady=false;
+    v.onplaying=()=>{
+      // Wait 800ms after video starts playing before scanning (let camera stabilize/autofocus)
+      setTimeout(()=>{woCamReady=true;},800);
+    };
+    v.play().catch(()=>{});
     document.getElementById('wo-cam-wrap').style.display='';
     document.getElementById('wo-cam-btn').style.display='none';
+    woCamAnimId=requestAnimationFrame(woCamFrame);
     // Auto-switch to tool tab
     switchWoTab('tool',document.querySelectorAll('#wo-tabs .nav-link')[1]);
   }catch(e){
@@ -1175,18 +1182,19 @@ async function woStartCam(){
   }
 }
 function woCamFrame(){
+  if(!woCamStream){return;}
   const v=document.getElementById('wo-cam-video');
   const c=document.getElementById('wo-cam-canvas');
-  if(!woCamStream)return;
-  if(v.readyState>=2&&v.videoWidth>0){
+  if(woCamReady&&v.readyState>=2&&v.videoWidth>0&&v.videoHeight>0){
     c.width=v.videoWidth;c.height=v.videoHeight;
     const ctx=c.getContext('2d');ctx.drawImage(v,0,0);
     try{
       const d=ctx.getImageData(0,0,c.width,c.height);
-      const code=jsQR(d.data,d.width,d.height,{inversionAttempts:'dontInvert'});
-      if(code&&code.data){
+      const result=jsQR(d.data,d.width,d.height,{inversionAttempts:'dontInvert'});
+      if(result&&result.data&&result.data.trim()){
+        const qrVal=result.data.trim();
         woStopCam();
-        woAddByQR(code.data);
+        woAddByQR(qrVal);
         return;
       }
     }catch(e){}
@@ -1196,6 +1204,9 @@ function woCamFrame(){
 function woStopCam(){
   if(woCamAnimId){cancelAnimationFrame(woCamAnimId);woCamAnimId=null;}
   if(woCamStream){woCamStream.getTracks().forEach(t=>t.stop());woCamStream=null;}
+  woCamReady=false;
+  const v=document.getElementById('wo-cam-video');
+  if(v){v.srcObject=null;v.onplaying=null;}
   const wrap=document.getElementById('wo-cam-wrap');
   const btn=document.getElementById('wo-cam-btn');
   if(wrap)wrap.style.display='none';
