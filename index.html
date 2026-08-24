@@ -1,7 +1,9 @@
-<html lang="th"><head>
+<!DOCTYPE html>
+<html lang="th">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>วัสดุ &amp; เครื่องมือช่าง</title>
+<title>วัสดุ & เครื่องมือช่าง</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
@@ -9,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="วัสดุ &amp; เครื่องมือ">
+<meta name="apple-mobile-web-app-title" content="วัสดุ & เครื่องมือ">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -93,11 +95,11 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 @media print{#sidebar,#cart-panel,.topbar,.no-print,#login-overlay{display:none!important;}#main{margin-left:0!important;}body{background:#fff;}.page{display:block!important;}}
 </style>
 </head>
-<body class="modal-open" style="overflow: hidden; padding-right: 0px;">
+<body>
 <!-- LOGIN -->
-<div id="login-overlay" style="display: none;">
+<div id="login-overlay">
   <div class="login-card">
-    <div class="login-logo"><i class="bi bi-tools"></i><h5>ระบบวัสดุ &amp; เครื่องมือช่าง</h5><div style="font-size:.78rem;color:#64748b;">โรงงาน v3.1</div></div>
+    <div class="login-logo"><i class="bi bi-tools"></i><h5>ระบบวัสดุ & เครื่องมือช่าง</h5><div style="font-size:.78rem;color:#64748b;">โรงงาน v3.1</div></div>
     <div class="mb-3"><label class="form-label" style="font-size:.82rem;font-weight:600;">ชื่อผู้ใช้</label><input type="text" class="form-control" id="login-user" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="mb-3"><label class="form-label" style="font-size:.82rem;font-weight:600;">รหัสผ่าน</label><input type="password" class="form-control" id="login-pass" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div id="login-err" class="text-danger mb-2" style="font-size:.8rem;display:none;"></div>
@@ -106,9 +108,9 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
   </div>
 </div>
 <!-- APP -->
-<div id="app" style="">
+<div id="app" style="display:none;">
 <div id="sidebar">
-  <div class="logo-bar"><i class="bi bi-tools"></i><div><div style="font-size:.65rem;color:#94a3b8;">โรงงาน</div>วัสดุ &amp; เครื่องมือ</div></div>
+  <div class="logo-bar"><i class="bi bi-tools"></i><div><div style="font-size:.65rem;color:#94a3b8;">โรงงาน</div>วัสดุ & เครื่องมือ</div></div>
   <div style="flex:1;overflow-y:auto;padding:5px 0;">
     <div class="nav-sec">ภาพรวม</div>
     <div class="nav-item active" onclick="showPage('dashboard')"><i class="bi bi-speedometer2"></i>แดชบอร์ด</div>
@@ -128,8 +130,8 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
     <div class="nav-item nav-admin" onclick="openFbConfig()"><i class="bi bi-cloud-arrow-up"></i>ตั้งค่า Firebase</div>
   </div>
   <div style="padding:10px 14px;border-top:1px solid #2d3f55;">
-    <div id="sidebar-user" style="color:#94a3b8;font-size:.75rem;margin-bottom:6px;">ผู้ดูแลระบบ (Admin)</div>
-    <div class="mb-2"><span id="sync-status" class="badge bg-success" style="font-size:.68rem;"><i class="bi bi-cloud-check-fill me-1"></i>ซิงค์แล้ว</span></div>
+    <div id="sidebar-user" style="color:#94a3b8;font-size:.75rem;margin-bottom:6px;"></div>
+    <div class="mb-2"><span id="sync-status" class="badge bg-secondary" style="font-size:.68rem;"><i class="bi bi-cloud-slash me-1"></i>Offline</span></div>
     <button class="btn btn-sm btn-outline-secondary w-100" onclick="doLogout()" style="font-size:.75rem;">ออกจากระบบ</button>
   </div>
 </div>
@@ -140,36 +142,27 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
       <h5 id="pg-title">แดชบอร์ด</h5>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <span id="hdr-date" style="color:#64748b;font-size:.78rem;">24 สิงหาคม 2569</span>
-      <span id="hdr-role" class="role-badge role-admin">Admin</span>
-      <span id="hdr-name" style="font-size:.82rem;font-weight:600;color:#1e293b;">ผู้ดูแลระบบ</span>
+      <span id="hdr-date" style="color:#64748b;font-size:.78rem;"></span>
+      <span id="hdr-role" class="role-badge role-admin"></span>
+      <span id="hdr-name" style="font-size:.82rem;font-weight:600;color:#1e293b;"></span>
     </div>
   </div>
   <div class="content">
   <!-- DASHBOARD -->
   <div id="page-dashboard" class="page active">
     <div class="row g-3 mb-3">
-      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="bi bi-file-earmark-text"></i></div><div><div class="lbl">ใบงานทั้งหมด</div><div class="val" id="st-orders">1</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="bi bi-file-earmark-text"></i></div><div><div class="lbl">ใบงานทั้งหมด</div><div class="val" id="st-orders">0</div></div></div></div>
       <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fee2e2;color:#991b1b;"><i class="bi bi-exclamation-circle"></i></div><div><div class="lbl">ใบงานค้างอยู่</div><div class="val" id="st-active-wo">0</div></div></div></div>
       <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef3c7;color:#b45309;"><i class="bi bi-wrench-adjustable"></i></div><div><div class="lbl">เครื่องมือค้างคืน</div><div class="val" id="st-tool-pending">0</div></div></div></div>
-      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef3c7;color:#92400e;"><i class="bi bi-people"></i></div><div><div class="lbl">ทีมช่าง</div><div class="val" id="st-teams">6</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef3c7;color:#92400e;"><i class="bi bi-people"></i></div><div><div class="lbl">ทีมช่าง</div><div class="val" id="st-teams">0</div></div></div></div>
     </div>
     <div class="tcard mb-3" id="focus-section">
       <div class="tcard-title"><span><i class="bi bi-star-fill me-2" style="color:#f59e0b;"></i>เครื่องมือโฟกัส (ว่าง/ทั้งหมด)</span></div>
-      <div class="p-3"><div class="row g-2" id="focus-grid"><div class="col-12 text-center text-muted py-2" style="font-size:.82rem;">ยังไม่มีเครื่องมือโฟกัส</div></div></div>
+      <div class="p-3"><div class="row g-2" id="focus-grid"></div></div>
     </div>
     <div class="tcard">
       <div class="tcard-title"><span><i class="bi bi-file-earmark-text me-2" style="color:#1a56db;"></i>ใบงานล่าสุด</span><small class="text-muted" style="font-size:.72rem;">คลิกที่แถวเพื่อดูรายละเอียด</small></div>
-      <div style="overflow-x:auto;"><table class="table table-hover mb-0"><thead><tr><th>รหัส</th><th>ชื่องาน</th><th>สถานที่</th><th>ทีม</th><th>ช่าง</th><th>วันที่</th><th>สถานะ</th></tr></thead><tbody id="dash-orders">
-    <tr class="dash-tx-row" onclick="openTxDetail(1)" title="คลิกเพื่อดูรายละเอียด" style="cursor:pointer;">
-      <td><small class="fw-bold text-primary">WO-2026-001</small></td>
-      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">ซ่อมระบบไฟฟ้าชั้น 2</td>
-      <td style="font-size:.78rem;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">อาคาร A</td>
-      <td style="font-size:.78rem;">ทีม A - ไฟฟ้า</td>
-      <td style="font-size:.75rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">-</td>
-      <td style="font-size:.78rem;white-space:nowrap;">2026-07-18</td>
-      <td><span class="bs " style="font-size:.65rem;">ปิดแล้ว</span></td>
-    </tr></tbody></table></div>
+      <div style="overflow-x:auto;"><table class="table table-hover mb-0"><thead><tr><th>รหัส</th><th>ชื่องาน</th><th>สถานที่</th><th>ทีม</th><th>ช่าง</th><th>วันที่</th><th>สถานะ</th></tr></thead><tbody id="dash-orders"></tbody></table></div>
     </div>
   </div>
 
@@ -415,11 +408,11 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
   </div>
   <div class="modal-footer">
     <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
-    <button class="btn btn-success btn-sm" id="imp-confirm-btn" onclick="doImport()" disabled=""><i class="bi bi-file-earmark-check me-1"></i>นำเข้าข้อมูล (<span id="imp-confirm-count">0</span> รายการ)</button>
+    <button class="btn btn-success btn-sm" id="imp-confirm-btn" onclick="doImport()" disabled><i class="bi bi-file-earmark-check me-1"></i>นำเข้าข้อมูล (<span id="imp-confirm-count">0</span> รายการ)</button>
   </div>
 </div></div></div>
 <!-- Firebase Config Modal -->
-<div class="modal fade show" id="fbConfigModal" tabindex="-1" aria-modal="true" role="dialog" style="display: block;"><div class="modal-dialog modal-lg"><div class="modal-content">
+<div class="modal fade" id="fbConfigModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
   <div class="modal-header" style="background:#0f172a;color:#fff;"><h5 class="modal-title"><i class="bi bi-cloud-arrow-up me-2"></i>ตั้งค่า Firebase Firestore</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
   <div class="modal-body">
     <div class="alert alert-info mb-3" style="font-size:.85rem;">
@@ -460,7 +453,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
     <div class="mb-3"><label class="form-label fw-bold">ใบงาน</label><div id="clm-tx-code" class="text-muted"></div></div>
     <div class="mb-3"><label class="form-label fw-bold">ประเภทการเคลม *</label>
       <div class="d-flex gap-3">
-        <div class="form-check"><input class="form-check-input" type="radio" name="clm-type" id="clm-lost" value="lost" checked=""><label class="form-check-label" for="clm-lost"><i class="bi bi-search me-1"></i>สูญหาย</label></div>
+        <div class="form-check"><input class="form-check-input" type="radio" name="clm-type" id="clm-lost" value="lost" checked><label class="form-check-label" for="clm-lost"><i class="bi bi-search me-1"></i>สูญหาย</label></div>
         <div class="form-check"><input class="form-check-input" type="radio" name="clm-type" id="clm-broken" value="broken"><label class="form-check-label" for="clm-broken"><i class="bi bi-tools me-1"></i>พังซ่อมไม่ได้</label></div>
       </div>
     </div>
@@ -692,7 +685,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
 // ====== FIREBASE LAYER ======
 // *** Admin: fill in your Firebase config here once, then upload index.html to GitHub ***
 // *** All devices will connect automatically — no per-device setup needed ***
-const HARDCODED_FB_CONFIG={apiKey:'AIzaSyAQXxWl-2Y-rFG5jNlUwRVekcBfMaGS1KU',projectId:'factory-equipment-system',authDomain:'factory-equipment-system.firebaseapp.com',appId:'1:309607845421:web:9dc3521fcb97c0491472a4'};
+const HARDCODED_FB_CONFIG={apiKey:'',projectId:'',authDomain:'',appId:''};
 
 const FB_COLS=['tools','materials','transactions','techs','teams','users','claims'];
 let fbDb=null,fbReady=false,fbUnsubscribes=[];
@@ -715,7 +708,7 @@ function fbInit(){
     fbPullAll().then(()=>{fbSetupRealtime();fbSyncStatus('online');refreshCurrentView();}).catch(e=>{console.error('FB pull err',e);fbSyncStatus('error');});
   }catch(e){console.error('FB init err',e);fbSyncStatus('error');}
 }
-function downloadIndexWithConfig(){
+async function downloadIndexWithConfig(){
   const cfg={
     apiKey:document.getElementById('fb-apiKey').value.trim(),
     projectId:document.getElementById('fb-projectId').value.trim(),
@@ -723,12 +716,19 @@ function downloadIndexWithConfig(){
     appId:document.getElementById('fb-appId').value.trim()
   };
   if(!cfg.apiKey||!cfg.projectId){alert('กรุณากรอก API Key และ Project ID ก่อน');return;}
-  const src=document.documentElement.outerHTML;
-  const newLine=`const HARDCODED_FB_CONFIG={apiKey:'${cfg.apiKey}',projectId:'${cfg.projectId}',authDomain:'${cfg.authDomain}',appId:'${cfg.appId}'};`;
-  const updated=src.replace(/const HARDCODED_FB_CONFIG=\{[^}]*\};/,newLine);
-  const blob=new Blob([updated],{type:'text/html'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='index.html';a.click();
-  alert('ดาวน์โหลดแล้ว!\nนำไฟล์ index.html นี้อัพโหลดขึ้น GitHub แทนไฟล์เดิม\nทุกเครื่องจะเชื่อมต่อ Firebase อัตโนมัติ');
+  try{
+    // Fetch original source (clean, no Bootstrap live-DOM state) to avoid baking in modal/backdrop HTML
+    const res=await fetch(location.href.split('?')[0]+'?_='+Date.now());
+    if(!res.ok)throw new Error('fetch failed');
+    let src=await res.text();
+    const newLine=`const HARDCODED_FB_CONFIG={apiKey:'${cfg.apiKey}',projectId:'${cfg.projectId}',authDomain:'${cfg.authDomain}',appId:'${cfg.appId}'};`;
+    const updated=src.replace(/const HARDCODED_FB_CONFIG=\{[^}]*\};/,newLine);
+    const blob=new Blob([updated],{type:'text/html'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='index.html';a.click();
+    alert('ดาวน์โหลดแล้ว!\nนำไฟล์ index.html นี้อัพโหลดขึ้น GitHub แทนไฟล์เดิม\nทุกเครื่องจะเชื่อมต่อ Firebase อัตโนมัติ');
+  }catch(e){
+    alert('เกิดข้อผิดพลาด: '+e.message+'\n\nหรือกรอก config ในไฟล์ index.html บรรทัด HARDCODED_FB_CONFIG โดยตรง');
+  }
 }
 async function fbPullAll(){
   if(!fbReady)return;
@@ -2302,6 +2302,5 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-
-
-<div class="modal-backdrop fade show"></div></body></html>
+</body>
+</html>
