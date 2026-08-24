@@ -17,6 +17,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -273,7 +274,10 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
   <div id="page-materials" class="page">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <input class="form-control form-control-sm w-50" id="mat-srch" placeholder="ค้นหา..." oninput="renderMatTbl()">
-      <button class="btn btn-sm btn-primary" onclick="openMatModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มวัสดุ</button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-success" onclick="openImportModal('mat')"><i class="bi bi-file-earmark-excel me-1"></i>Import Excel</button>
+        <button class="btn btn-sm btn-primary" onclick="openMatModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มวัสดุ</button>
+      </div>
     </div>
     <div class="tcard"><div style="overflow-x:auto;"><table class="table table-hover">
       <thead><tr><th>รูป</th><th>ชื่อวัสดุ</th><th>หมวด</th><th>หน่วย</th><th>ที่เก็บ</th><th></th></tr></thead>
@@ -285,7 +289,10 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
   <div id="page-tools" class="page">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <input class="form-control form-control-sm w-50" id="tool-srch" placeholder="ค้นหา..." oninput="renderToolTbl()">
-      <button class="btn btn-sm btn-primary" onclick="openToolModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มเครื่องมือ</button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-success" onclick="openImportModal('tool')"><i class="bi bi-file-earmark-excel me-1"></i>Import Excel</button>
+        <button class="btn btn-sm btn-primary" onclick="openToolModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มเครื่องมือ</button>
+      </div>
     </div>
     <div class="tcard"><div style="overflow-x:auto;"><table class="table table-hover">
       <thead><tr><th>รูป</th><th>QR</th><th>ชื่อเครื่องมือ</th><th>หมวด</th><th>สถานะ</th><th>⭐</th><th>วันซื้อ</th><th></th></tr></thead>
@@ -301,7 +308,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
       <li class="nav-item"><a class="nav-link" href="#" onclick="swTechTab('usr',this);return false;"><i class="bi bi-shield-lock me-1"></i>ผู้ใช้งาน</a></li>
     </ul>
     <div id="tab-t">
-      <div class="d-flex justify-content-between mb-2"><input class="form-control form-control-sm w-50" placeholder="ค้นหา..." oninput="renderTechTbl(this.value)"><button class="btn btn-sm btn-primary" onclick="openTechModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มช่าง</button></div>
+      <div class="d-flex justify-content-between mb-2"><input class="form-control form-control-sm w-50" placeholder="ค้นหา..." oninput="renderTechTbl(this.value)"><div class="d-flex gap-2"><button class="btn btn-sm btn-outline-success" onclick="openImportModal('tech')"><i class="bi bi-file-earmark-excel me-1"></i>Import Excel</button><button class="btn btn-sm btn-primary" onclick="openTechModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มช่าง</button></div></div>
       <div class="tcard"><table class="table table-hover"><thead><tr><th>รูป</th><th>รหัส</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>เบอร์โทร</th><th></th></tr></thead><tbody id="tech-tbl"></tbody></table></div>
     </div>
     <div id="tab-tm" style="display:none;">
@@ -309,7 +316,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
       <div class="tcard"><table class="table table-hover"><thead><tr><th>ชื่อทีม</th><th>คำอธิบาย</th><th>สมาชิก</th><th></th></tr></thead><tbody id="team-tbl"></tbody></table></div>
     </div>
     <div id="tab-usr" style="display:none;">
-      <div class="d-flex justify-content-between mb-2"><div></div><button class="btn btn-sm btn-primary" onclick="openUserModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มผู้ใช้</button></div>
+      <div class="d-flex justify-content-between mb-2"><div></div><div class="d-flex gap-2"><button class="btn btn-sm btn-outline-success" onclick="openImportModal('user')"><i class="bi bi-file-earmark-excel me-1"></i>Import Excel</button><button class="btn btn-sm btn-primary" onclick="openUserModal()"><i class="bi bi-plus-lg me-1"></i>เพิ่มผู้ใช้</button></div></div>
       <div class="tcard"><table class="table table-hover"><thead><tr><th>Username</th><th>ชื่อ</th><th>บทบาท</th><th>ช่างที่เชื่อม</th><th></th></tr></thead><tbody id="user-tbl"></tbody></table></div>
     </div>
   </div>
@@ -366,6 +373,43 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f1f5f9;margin:0;}
   </div><!-- .content -->
 </div><!-- #main -->
 <!-- ===== MODALS ===== -->
+<!-- Import Excel Modal -->
+<div class="modal fade" id="importModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content">
+  <div class="modal-header" style="background:#166534;color:#fff;"><h5 class="modal-title"><i class="bi bi-file-earmark-excel me-2"></i>Import จาก Excel — <span id="imp-title"></span></h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div id="imp-step1">
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <div class="alert alert-info mb-0" style="font-size:.84rem;">
+            <b><i class="bi bi-info-circle me-1"></i>วิธีใช้:</b><br>
+            1. กด "ดาวน์โหลด Template" → เปิดใน Excel<br>
+            2. กรอกข้อมูลตามหัวคอลัมน์<br>
+            3. บันทึกไฟล์ → กด "เลือกไฟล์" นำเข้า
+          </div>
+        </div>
+        <div class="col-md-6 d-flex align-items-center">
+          <button class="btn btn-outline-success btn-sm me-2" onclick="downloadImportTemplate()"><i class="bi bi-download me-1"></i>ดาวน์โหลด Template (.xlsx)</button>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-bold">เลือกไฟล์ Excel (.xlsx, .xls, .csv)</label>
+        <input type="file" class="form-control form-control-sm" id="imp-file" accept=".xlsx,.xls,.csv" onchange="handleImportFile(event)">
+      </div>
+      <div id="imp-preview-area" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-bold" style="font-size:.85rem;"><i class="bi bi-table me-1"></i>ตัวอย่างข้อมูล (<span id="imp-count">0</span> แถว)</div>
+          <span class="badge bg-success" id="imp-valid-badge"></span>
+        </div>
+        <div style="overflow-x:auto;max-height:300px;overflow-y:auto;"><table class="table table-sm table-bordered" style="font-size:.78rem;" id="imp-preview-tbl"><thead></thead><tbody></tbody></table></div>
+        <div id="imp-errors" class="alert alert-warning mt-2" style="font-size:.8rem;display:none;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+    <button class="btn btn-success btn-sm" id="imp-confirm-btn" onclick="doImport()" disabled><i class="bi bi-file-earmark-check me-1"></i>นำเข้าข้อมูล (<span id="imp-confirm-count">0</span> รายการ)</button>
+  </div>
+</div></div></div>
 <!-- Firebase Config Modal -->
 <div class="modal fade" id="fbConfigModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
   <div class="modal-header" style="background:#0f172a;color:#fff;"><h5 class="modal-title"><i class="bi bi-cloud-arrow-up me-2"></i>ตั้งค่า Firebase Firestore</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
@@ -1613,6 +1657,99 @@ function loadPending(){
       <div class="mt-1">${toolList}</div>
     </div>`;
   }).join('');
+}
+// ====== IMPORT EXCEL ======
+const IMP_CFG={
+  mat:{title:'วัสดุ',cols:['ชื่อวัสดุ*','หมวดหมู่','หน่วย','ที่เก็บ','ผู้จัดจำหน่าย','รายละเอียด'],keys:['name','cat','unit','location','supplier','desc']},
+  tool:{title:'เครื่องมือ',cols:['ชื่อเครื่องมือ*','หมวดหมู่','QR Code','ที่เก็บ','ผู้จัดจำหน่าย','ราคา','วันที่ซื้อ','อายุการใช้งาน(ปี)'],keys:['name','cat','qrCode','location','supplier','price','buyDate','lifespan']},
+  tech:{title:'ช่าง',cols:['รหัสพนักงาน','ชื่อ-นามสกุล*','ตำแหน่ง','เบอร์โทร'],keys:['empId','name','pos','phone']},
+  user:{title:'ผู้ใช้งาน',cols:['Username*','Password*','ชื่อ*','บทบาท(admin/planning/tech)*'],keys:['username','password','name','role']}
+};
+let impType='',impRows=[];
+function openImportModal(type){
+  impType=type;impRows=[];
+  const cfg=IMP_CFG[type];
+  document.getElementById('imp-title').textContent=cfg.title;
+  document.getElementById('imp-file').value='';
+  document.getElementById('imp-preview-area').style.display='none';
+  document.getElementById('imp-confirm-btn').disabled=true;
+  document.getElementById('imp-confirm-count').textContent='0';
+  new bootstrap.Modal(document.getElementById('importModal')).show();
+}
+function downloadImportTemplate(){
+  const cfg=IMP_CFG[impType];
+  const ws=XLSX.utils.aoa_to_sheet([cfg.cols]);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Template');
+  XLSX.writeFile(wb,`template_${cfg.title}.xlsx`);
+}
+function handleImportFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const wb=XLSX.read(ev.target.result,{type:'binary'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    if(!raw||raw.length<2){alert('ไม่พบข้อมูลในไฟล์');return;}
+    const cfg=IMP_CFG[impType];
+    const hdr=raw[0].map(h=>(h||'').toString().trim());
+    // Map by column index matching header order
+    const dataRows=raw.slice(1).filter(r=>r.some(c=>c!==''));
+    impRows=dataRows.map(r=>{
+      const obj={};
+      cfg.keys.forEach((k,i)=>{obj[k]=(r[i]||'').toString().trim();});
+      return obj;
+    }).filter(o=>o[cfg.keys[1]]||o[cfg.keys[0]]); // require name
+    // Render preview
+    const thead=document.querySelector('#imp-preview-tbl thead');
+    const tbody=document.querySelector('#imp-preview-tbl tbody');
+    thead.innerHTML='<tr>'+cfg.cols.map(c=>`<th style="white-space:nowrap;font-size:.75rem;">${c}</th>`).join('')+'</tr>';
+    tbody.innerHTML=impRows.slice(0,10).map(o=>'<tr>'+cfg.keys.map(k=>`<td>${o[k]||''}</td>`).join('')+'</tr>').join('');
+    document.getElementById('imp-count').textContent=impRows.length;
+    document.getElementById('imp-valid-badge').textContent=`${impRows.length} รายการพร้อม import`;
+    document.getElementById('imp-preview-area').style.display='';
+    document.getElementById('imp-confirm-btn').disabled=impRows.length===0;
+    document.getElementById('imp-confirm-count').textContent=impRows.length;
+  };
+  reader.readAsBinaryString(file);
+}
+function doImport(){
+  if(!impRows.length)return;
+  const cfg=IMP_CFG[impType];
+  if(impType==='mat'){
+    const mats=DB.get('materials');
+    impRows.forEach(r=>{
+      if(!r.name)return;
+      mats.push({id:DB.nextId('materials'),name:r.name,cat:r.cat||'',unit:r.unit||'',location:r.location||'',supplier:r.supplier||'',desc:r.desc||''});
+    });
+    DB.set('materials',mats);renderMatTbl();
+  } else if(impType==='tool'){
+    const tools=DB.get('tools');
+    impRows.forEach(r=>{
+      if(!r.name)return;
+      tools.push({id:DB.nextId('tools'),name:r.name,cat:r.cat||'',qrCode:r.qrCode||('T-'+Date.now()),status:'available',location:r.location||'',supplier:r.supplier||'',price:r.price||'',buyDate:r.buyDate||'',lifespan:r.lifespan||'',isFocus:false,desc:'',img:'',repairs:[]});
+    });
+    DB.set('tools',tools);renderToolTbl();
+  } else if(impType==='tech'){
+    const techs=DB.get('techs');
+    impRows.forEach(r=>{
+      if(!r.name)return;
+      techs.push({id:DB.nextId('techs'),empId:r.empId||'',name:r.name,pos:r.pos||'',phone:r.phone||'',img:'',repairs:[]});
+    });
+    DB.set('techs',techs);renderTechTbl();
+  } else if(impType==='user'){
+    const users=DB.get('users');
+    const valid=['admin','planning','tech'];
+    impRows.forEach(r=>{
+      if(!r.username||!r.password||!r.name)return;
+      if(users.find(u=>u.username===r.username))return; // skip duplicate
+      users.push({username:r.username,password:r.password,name:r.name,role:valid.includes(r.role)?r.role:'tech',techId:null});
+    });
+    DB.set('users',users);renderUserTbl();
+  }
+  bootstrap.Modal.getInstance(document.getElementById('importModal')).hide();
+  alert(`นำเข้า ${impRows.length} รายการเรียบร้อยแล้ว`);
+  impRows=[];
 }
 // ====== CLAIM TOOL ======
 function openClaimModal(txId,toolIdx){
